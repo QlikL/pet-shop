@@ -67,3 +67,7 @@ Thumbs.db
 *.bak
 *.orig
 *~
+
+# Project specific files
+期末项目方案.txt
+效果截图.png

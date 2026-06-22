@@ -30,7 +30,7 @@ public class PetService {
 
         Pet pet = new Pet(id, name, species, age, price, status);
         if (!petDao.add(pet)) throw new BusinessException("宠物ID已存在");
-        inventoryDao.save(new Inventory(id, 10, 5));
+        inventoryDao.save(new Inventory(id, 0, 5));
         return pet;
     }
 
