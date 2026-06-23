@@ -32,15 +32,20 @@ public class SalesManagementPanel extends JPanel {
     }
     
     private void initializePanel() {
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setLayout(new BorderLayout(10, 10));
+        setBackground(new Color(245, 247, 250));
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
     }
     
     private void createComponents() {
-        // 创建标题
+        // 创建标题面板
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setOpaque(false);
         JLabel titleLabel = new JLabel("销售管理", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 20));
-        add(titleLabel, BorderLayout.NORTH);
+        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(51, 51, 51));
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        add(titlePanel, BorderLayout.NORTH);
         
         // 创建表格
         createSalesTable();
@@ -61,19 +66,43 @@ public class SalesManagementPanel extends JPanel {
         salesTable = new JTable(tableModel);
         salesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         salesTable.getTableHeader().setReorderingAllowed(false);
+        salesTable.setRowHeight(30);
+        salesTable.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        salesTable.getTableHeader().setFont(new Font("微软雅黑", Font.BOLD, 14));
+        salesTable.getTableHeader().setBackground(new Color(240, 242, 245)); // 浅灰蓝背景
+        salesTable.getTableHeader().setForeground(new Color(51, 51, 51)); // 深黑色文字
+        salesTable.setGridColor(new Color(230, 230, 230));
+        salesTable.setShowGrid(true);
+        salesTable.setIntercellSpacing(new Dimension(1, 1));
         
         JScrollPane scrollPane = new JScrollPane(salesTable);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
         add(scrollPane, BorderLayout.CENTER);
     }
     
     private void createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        buttonPanel.setBackground(new Color(245, 247, 250));
+        buttonPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(15, 5, 5, 5)
+        ));
         
         JButton addButton = new JButton("添加销售记录");
         JButton queryButton = new JButton("查询销售记录");
         JButton timeQueryButton = new JButton("按时间范围查询");
         JButton statisticsButton = new JButton("销售统计");
         JButton refreshButton = new JButton("刷新列表");
+        
+        // 设置按钮样式
+        styleButton(addButton, new Color(76, 175, 80));
+        styleButton(queryButton, new Color(33, 150, 243));
+        styleButton(timeQueryButton, new Color(156, 39, 176));
+        styleButton(statisticsButton, new Color(255, 152, 0));
+        styleButton(refreshButton, new Color(96, 125, 139));
         
         addButton.addActionListener(e -> addSalesRecord());
         queryButton.addActionListener(e -> querySalesRecord());
@@ -88,6 +117,19 @@ public class SalesManagementPanel extends JPanel {
         buttonPanel.add(refreshButton);
         
         add(buttonPanel, BorderLayout.SOUTH);
+    }
+    
+    /**
+     * 设置按钮样式
+     */
+    private void styleButton(JButton button, Color bgColor) {
+        button.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(130, 40));
     }
     
     private void loadSalesData() {

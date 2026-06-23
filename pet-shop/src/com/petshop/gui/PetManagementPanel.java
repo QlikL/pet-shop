@@ -8,8 +8,11 @@ import com.petshop.dao.InventoryDao;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * 宠物管理界面面板
@@ -18,6 +21,8 @@ public class PetManagementPanel extends JPanel {
     private PetService petService;
     private JTable petTable;
     private DefaultTableModel tableModel;
+    private TableRowSorter<DefaultTableModel> sorter;
+    private List<Pet> allPets; // 保存所有宠物数据
     
     public PetManagementPanel() {
         // 创建DAO实例
@@ -31,15 +36,20 @@ public class PetManagementPanel extends JPanel {
     }
     
     private void initializePanel() {
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setLayout(new BorderLayout(10, 10));
+        setBackground(new Color(245, 247, 250));
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
     }
     
     private void createComponents() {
-        // 创建标题
+        // 创建标题面板
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setOpaque(false);
         JLabel titleLabel = new JLabel("宠物管理", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 20));
-        add(titleLabel, BorderLayout.NORTH);
+        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(51, 51, 51));
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        add(titlePanel, BorderLayout.NORTH);
         
         // 创建表格
         createPetTable();
@@ -60,55 +70,108 @@ public class PetManagementPanel extends JPanel {
         petTable = new JTable(tableModel);
         petTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         petTable.getTableHeader().setReorderingAllowed(false);
+        petTable.setRowHeight(30);
+        petTable.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        petTable.getTableHeader().setFont(new Font("微软雅黑", Font.BOLD, 14));
+        petTable.getTableHeader().setBackground(new Color(240, 242, 245)); // 浅灰蓝背景
+        petTable.getTableHeader().setForeground(new Color(51, 51, 51)); // 深黑色文字
+        petTable.setGridColor(new Color(230, 230, 230));
+        petTable.setShowGrid(true);
+        petTable.setIntercellSpacing(new Dimension(1, 1));
+        
+        // 创建行排序器
+        sorter = new TableRowSorter<>(tableModel);
+        
+        // 设置每列的排序规则
+        sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER); // 宠物ID - 字符串排序
+        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 名称 - 字符串排序
+        sorter.setComparator(2, String.CASE_INSENSITIVE_ORDER); // 种类 - 字符串排序
+        sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 年龄 - 整数排序
+        sorter.setComparator(4, (Comparator<Object>) (o1, o2) -> Double.compare((Double)o1, (Double)o2)); // 价格 - 双精度排序
+        sorter.setComparator(5, String.CASE_INSENSITIVE_ORDER); // 状态 - 字符串排序
+        
+        petTable.setRowSorter(sorter);
+        
+        // 交替行颜色
+        petTable.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                java.awt.Component c = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+                if (!isSelected) {
+                    setBackground(row % 2 == 0 ? Color.WHITE : new Color(245, 247, 250));
+                }
+                return c;
+            }
+        });
         
         JScrollPane scrollPane = new JScrollPane(petTable);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
         add(scrollPane, BorderLayout.CENTER);
     }
     
     private void createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        buttonPanel.setBackground(new Color(245, 247, 250));
+        buttonPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(15, 5, 5, 5)
+        ));
         
-        JButton addButton = new JButton("添加宠物");
-        JButton deleteButton = new JButton("删除宠物");
-        JButton updateButton = new JButton("修改宠物");
-        JButton queryButton = new JButton("查询宠物");
-        JButton filterSpeciesButton = new JButton("按种类筛选");
-        JButton filterStatusButton = new JButton("按状态筛选");
-        JButton refreshButton = new JButton("刷新列表");
+        JButton addButton = createStyledButton("添加宠物", new Color(76, 175, 80));
+        JButton deleteButton = createStyledButton("删除宠物", new Color(244, 67, 54));
+        JButton updateButton = createStyledButton("修改宠物", new Color(33, 150, 243));
+        JButton queryButton = createStyledButton("查询宠物", new Color(156, 39, 176));
+        JButton refreshButton = createStyledButton("刷新列表", new Color(96, 125, 139));
         
         addButton.addActionListener(e -> addPet());
         deleteButton.addActionListener(e -> deletePet());
         updateButton.addActionListener(e -> updatePet());
         queryButton.addActionListener(e -> queryPet());
-        filterSpeciesButton.addActionListener(e -> filterBySpecies());
-        filterStatusButton.addActionListener(e -> filterByStatus());
         refreshButton.addActionListener(e -> loadPetData());
         
         buttonPanel.add(addButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(queryButton);
-        buttonPanel.add(filterSpeciesButton);
-        buttonPanel.add(filterStatusButton);
         buttonPanel.add(refreshButton);
         
         add(buttonPanel, BorderLayout.SOUTH);
     }
     
+    /**
+     * 创建样式化按钮
+     */
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(120, 40));
+        return button;
+    }
+    
     private void loadPetData() {
         tableModel.setRowCount(0); // 清空表格
-        List<Pet> pets = petService.getAllPets();
+        allPets = petService.getAllPets();
         
         // 限制显示数量，避免大数据量时界面卡顿
         int maxDisplay = 1000;
-        if (pets.size() > maxDisplay) {
+        if (allPets.size() > maxDisplay) {
             JOptionPane.showMessageDialog(this, 
-                "数据量较大（" + pets.size() + "条），仅显示前" + maxDisplay + "条记录",
+                "数据量较大（" + allPets.size() + "条），仅显示前" + maxDisplay + "条记录",
                 "提示", JOptionPane.INFORMATION_MESSAGE);
-            pets = pets.subList(0, maxDisplay);
+            allPets = allPets.subList(0, maxDisplay);
         }
         
-        for (Pet pet : pets) {
+        for (Pet pet : allPets) {
             Object[] row = {
                 pet.getId(),
                 pet.getName(),
@@ -124,7 +187,7 @@ public class PetManagementPanel extends JPanel {
     private void addPet() {
         // 创建添加宠物对话框
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "添加宠物", true);
-        dialog.setSize(400, 300);
+        dialog.setSize(400, 350);
         dialog.setLocationRelativeTo(this);
         
         JPanel panel = new JPanel(new GridBagLayout());
@@ -133,37 +196,43 @@ public class PetManagementPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         // 创建输入字段
+        JTextField idField = new JTextField(20);
         JTextField nameField = new JTextField(20);
-        JTextField speciesField = new JTextField(20);
+        JComboBox<String> speciesCombo = new JComboBox<>(new String[]{"狗", "猫", "其他"});
         JTextField ageField = new JTextField(20);
         JTextField priceField = new JTextField(20);
-        JTextField statusField = new JTextField(20);
+        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"可售", "已售", "预留"});
         
         // 添加标签和输入字段
         gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("宠物ID:"), gbc);
+        gbc.gridx = 1;
+        panel.add(idField, gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("名称:"), gbc);
         gbc.gridx = 1;
         panel.add(nameField, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0; gbc.gridy = 2;
         panel.add(new JLabel("种类:"), gbc);
         gbc.gridx = 1;
-        panel.add(speciesField, gbc);
+        panel.add(speciesCombo, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 3;
         panel.add(new JLabel("年龄:"), gbc);
         gbc.gridx = 1;
         panel.add(ageField, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 4;
         panel.add(new JLabel("价格:"), gbc);
         gbc.gridx = 1;
         panel.add(priceField, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 5;
         panel.add(new JLabel("状态:"), gbc);
         gbc.gridx = 1;
-        panel.add(statusField, gbc);
+        panel.add(statusCombo, gbc);
         
         // 创建按钮面板
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -172,21 +241,22 @@ public class PetManagementPanel extends JPanel {
         
         saveButton.addActionListener(e -> {
             try {
+                String id = idField.getText().trim();
                 String name = nameField.getText().trim();
-                String species = speciesField.getText().trim();
+                String species = (String) speciesCombo.getSelectedItem();
                 String ageStr = ageField.getText().trim();
                 String priceStr = priceField.getText().trim();
-                String status = statusField.getText().trim();
+                String status = (String) statusCombo.getSelectedItem();
                 
-                if (name.isEmpty() || species.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty() || status.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "请填写所有字段", "错误", JOptionPane.ERROR_MESSAGE);
+                if (id.isEmpty() || name.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "请填写所有必填字段", "错误", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 
                 int age = Integer.parseInt(ageStr);
                 double price = Double.parseDouble(priceStr);
                 
-                petService.addPet("", name, species, age, price, status);
+                petService.addPet(id, name, species, age, price, status);
                 loadPetData();
                 dialog.dispose();
                 JOptionPane.showMessageDialog(this, "添加成功", "提示", JOptionPane.INFORMATION_MESSAGE);
@@ -202,7 +272,7 @@ public class PetManagementPanel extends JPanel {
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
         
-        gbc.gridx = 0; gbc.gridy = 5;
+        gbc.gridx = 0; gbc.gridy = 6;
         gbc.gridwidth = 2;
         panel.add(buttonPanel, gbc);
         
@@ -258,7 +328,7 @@ public class PetManagementPanel extends JPanel {
         
         // 创建修改宠物对话框
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "修改宠物", true);
-        dialog.setSize(400, 300);
+        dialog.setSize(400, 350);
         dialog.setLocationRelativeTo(this);
         
         JPanel panel = new JPanel(new GridBagLayout());
@@ -268,10 +338,12 @@ public class PetManagementPanel extends JPanel {
         
         // 创建输入字段
         JTextField nameField = new JTextField(currentName, 20);
-        JTextField speciesField = new JTextField(currentSpecies, 20);
+        JComboBox<String> speciesCombo = new JComboBox<>(new String[]{"狗", "猫", "其他"});
+        speciesCombo.setSelectedItem(currentSpecies);
         JTextField ageField = new JTextField(String.valueOf(currentAge), 20);
         JTextField priceField = new JTextField(String.valueOf(currentPrice), 20);
-        JTextField statusField = new JTextField(currentStatus, 20);
+        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"可售", "已售", "预留"});
+        statusCombo.setSelectedItem(currentStatus);
         
         // 添加标签和输入字段
         gbc.gridx = 0; gbc.gridy = 0;
@@ -282,7 +354,7 @@ public class PetManagementPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("种类:"), gbc);
         gbc.gridx = 1;
-        panel.add(speciesField, gbc);
+        panel.add(speciesCombo, gbc);
         
         gbc.gridx = 0; gbc.gridy = 2;
         panel.add(new JLabel("年龄:"), gbc);
@@ -297,7 +369,7 @@ public class PetManagementPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy = 4;
         panel.add(new JLabel("状态:"), gbc);
         gbc.gridx = 1;
-        panel.add(statusField, gbc);
+        panel.add(statusCombo, gbc);
         
         // 创建按钮面板
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -307,13 +379,13 @@ public class PetManagementPanel extends JPanel {
         saveButton.addActionListener(e -> {
             try {
                 String name = nameField.getText().trim();
-                String species = speciesField.getText().trim();
+                String species = (String) speciesCombo.getSelectedItem();
                 String ageStr = ageField.getText().trim();
                 String priceStr = priceField.getText().trim();
-                String status = statusField.getText().trim();
+                String status = (String) statusCombo.getSelectedItem();
                 
-                if (name.isEmpty() || species.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty() || status.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "请填写所有字段", "错误", JOptionPane.ERROR_MESSAGE);
+                if (name.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "请填写所有必填字段", "错误", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 
@@ -347,36 +419,5 @@ public class PetManagementPanel extends JPanel {
     private void queryPet() {
         // TODO: 实现查询宠物对话框
         JOptionPane.showMessageDialog(this, "查询宠物功能待实现", "提示", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
-    private void filterBySpecies() {
-        String species = JOptionPane.showInputDialog(this, "请输入要筛选的种类:");
-        if (species != null && !species.trim().isEmpty()) {
-            List<Pet> filteredPets = petService.getPetsBySpecies(species.trim());
-            updateTableWithFilteredData(filteredPets);
-        }
-    }
-    
-    private void filterByStatus() {
-        String status = JOptionPane.showInputDialog(this, "请输入要筛选的状态:");
-        if (status != null && !status.trim().isEmpty()) {
-            List<Pet> filteredPets = petService.getPetsByStatus(status.trim());
-            updateTableWithFilteredData(filteredPets);
-        }
-    }
-    
-    private void updateTableWithFilteredData(List<Pet> pets) {
-        tableModel.setRowCount(0);
-        for (Pet pet : pets) {
-            Object[] row = {
-                pet.getId(),
-                pet.getName(),
-                pet.getSpecies(),
-                pet.getAge(),
-                pet.getPrice(),
-                pet.getStatus()
-            };
-            tableModel.addRow(row);
-        }
     }
 }

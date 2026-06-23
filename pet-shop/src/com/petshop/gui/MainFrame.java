@@ -2,24 +2,31 @@ package com.petshop.gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 主窗口框架类
- * 包含标题栏、菜单栏、内容区域和状态栏
+ * 包含顶部通栏、侧边栏导航、内容区域和状态栏
  */
 public class MainFrame extends JFrame {
-    private static final int DEFAULT_WIDTH = 1024;
-    private static final int DEFAULT_HEIGHT = 768;
+    private static final int DEFAULT_WIDTH = 1280;
+    private static final int DEFAULT_HEIGHT = 800;
     
     private JPanel contentPanel;
     private JLabel statusLabel;
     private JLabel timeLabel;
+    private JLabel moduleLabel; // 当前模块名称
+    private JLabel userLabel; // 当前用户
     private JPanel navigationPanel;
+    private Map<String, JButton> navButtons = new HashMap<>(); // 导航按钮映射
+    private String currentModule = "首页"; // 当前模块
+    private String currentUser = "管理员"; // 当前用户
     
     public MainFrame() {
         initializeFrame();
-        createMenuBar();
-        createNavigationPanel();
+        createTopBar(); // 创建顶部通栏
+        createNavigationPanel(); // 创建优化后的侧边栏
         createContentPanel();
         createStatusBar();
     }
@@ -55,102 +62,186 @@ public class MainFrame extends JFrame {
         });
     }
     
-    private void createMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
+    /**
+     * 创建顶部通栏
+     */
+    private void createTopBar() {
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setBackground(new Color(51, 153, 255));
+        topBar.setPreferredSize(new Dimension(0, 60));
+        topBar.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
         
-        // 宠物管理菜单
-        JMenu petMenu = new JMenu("宠物管理");
-        petMenu.add(new JMenuItem("查看宠物列表"));
-        petMenu.add(new JMenuItem("添加宠物"));
-        petMenu.add(new JMenuItem("查询宠物"));
-        petMenu.addSeparator();
-        petMenu.add(new JMenuItem("按种类筛选"));
-        petMenu.add(new JMenuItem("按状态筛选"));
+        // 左侧：当前模块名称
+        moduleLabel = new JLabel("首页");
+        moduleLabel.setFont(new Font("微软雅黑", Font.BOLD, 18));
+        moduleLabel.setForeground(Color.WHITE);
+        topBar.add(moduleLabel, BorderLayout.WEST);
         
-        // 库存管理菜单
-        JMenu inventoryMenu = new JMenu("库存管理");
-        inventoryMenu.add(new JMenuItem("查看库存列表"));
-        inventoryMenu.add(new JMenuItem("查询库存"));
-        inventoryMenu.add(new JMenuItem("更新库存"));
-        inventoryMenu.add(new JMenuItem("设置预警"));
-        inventoryMenu.add(new JMenuItem("检查预警"));
-        inventoryMenu.add(new JMenuItem("库存统计"));
+        // 右侧：用户信息和退出按钮
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        rightPanel.setOpaque(false);
         
-        // 销售管理菜单
-        JMenu salesMenu = new JMenu("销售管理");
-        salesMenu.add(new JMenuItem("查看销售记录"));
-        salesMenu.add(new JMenuItem("添加销售记录"));
-        salesMenu.add(new JMenuItem("查询销售记录"));
-        salesMenu.add(new JMenuItem("按时间范围查询"));
-        salesMenu.add(new JMenuItem("销售统计"));
+        userLabel = new JLabel(currentUser);
+        userLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        userLabel.setForeground(Color.WHITE);
         
-        // 数据统计菜单
-        JMenu statisticsMenu = new JMenu("数据统计");
-        statisticsMenu.add(new JMenuItem("库存统计"));
-        statisticsMenu.add(new JMenuItem("销售统计"));
+        JButton logoutButton = new JButton("退出登录");
+        logoutButton.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        logoutButton.setBackground(new Color(231, 76, 60));
+        logoutButton.setForeground(Color.WHITE);
+        logoutButton.setFocusPainted(false);
+        logoutButton.setBorderPainted(false);
+        logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutButton.addActionListener(e -> logout());
         
-        // 系统菜单
-        JMenu systemMenu = new JMenu("系统");
-        systemMenu.add(new JMenuItem("关于"));
-        systemMenu.addSeparator();
-        systemMenu.add(new JMenuItem("退出"));
+        rightPanel.add(userLabel);
+        rightPanel.add(logoutButton);
+        topBar.add(rightPanel, BorderLayout.EAST);
         
-        menuBar.add(petMenu);
-        menuBar.add(inventoryMenu);
-        menuBar.add(salesMenu);
-        menuBar.add(statisticsMenu);
-        menuBar.add(systemMenu);
-        
-        setJMenuBar(menuBar);
+        add(topBar, BorderLayout.NORTH);
     }
     
     private void createNavigationPanel() {
         navigationPanel = new JPanel();
         navigationPanel.setLayout(new BoxLayout(navigationPanel, BoxLayout.Y_AXIS));
-        navigationPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        navigationPanel.setPreferredSize(new Dimension(150, 0));
+        navigationPanel.setBackground(new Color(240, 242, 245));
+        navigationPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+        navigationPanel.setPreferredSize(new Dimension(200, 0));
         
-        JLabel titleLabel = new JLabel("功能导航");
-        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 16));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // 添加导航按钮 (移除"功能导航"标题)
+        addButtonWithIcon("宠物管理", "");
+        addButtonWithIcon("库存管理", "");
+        addButtonWithIcon("销售管理", "");
+        addButtonWithIcon("数据统计", "");
         
-        JButton petButton = new JButton("宠物管理");
-        JButton inventoryButton = new JButton("库存管理");
-        JButton salesButton = new JButton("销售管理");
-        JButton statisticsButton = new JButton("数据统计");
+        JScrollPane scrollPane = new JScrollPane(navigationPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
-        // 设置按钮属性
-        Dimension buttonSize = new Dimension(130, 35);
-        petButton.setPreferredSize(buttonSize);
-        inventoryButton.setPreferredSize(buttonSize);
-        salesButton.setPreferredSize(buttonSize);
-        statisticsButton.setPreferredSize(buttonSize);
+        add(scrollPane, BorderLayout.WEST);
+    }
+    
+    /**
+     * 添加带图标的导航按钮
+     */
+    private void addButtonWithIcon(String text, String icon) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("微软雅黑", Font.PLAIN, 15));
+        button.setHorizontalAlignment(SwingConstants.LEFT);
+        button.setPreferredSize(new Dimension(180, 50));
+        button.setMaximumSize(new Dimension(180, 50));
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        // 移除 setContentAreaFilled(false) 以允许背景色显示
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        petButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        inventoryButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        salesButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        statisticsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // 设置未选中状态样式 - 深灰色文字
+        button.setBackground(Color.WHITE);
+        button.setForeground(new Color(51, 51, 51)); // 深黑色
         
-        // 添加按钮事件监听器
-        petButton.addActionListener(e -> showPetManagement());
-        inventoryButton.addActionListener(e -> showInventoryManagement());
-        salesButton.addActionListener(e -> showSalesManagement());
-        statisticsButton.addActionListener(e -> showStatistics());
+        // 添加鼠标悬停效果
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                if (!button.getBackground().equals(new Color(51, 153, 255))) {
+                    button.setBackground(new Color(240, 242, 245));
+                    button.setForeground(new Color(51, 51, 51)); // 保持深黑色
+                }
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                if (!button.getBackground().equals(new Color(51, 153, 255))) {
+                    button.setBackground(Color.WHITE);
+                    button.setForeground(new Color(51, 51, 51)); // 恢复深黑色
+                }
+            }
+        });
         
-        navigationPanel.add(titleLabel);
-        navigationPanel.add(Box.createVerticalStrut(20));
-        navigationPanel.add(petButton);
+        // 设置选中状态样式 - 蓝色背景配白色文字
+        button.addActionListener(e -> {
+            // 重置所有按钮样式
+            for (JButton btn : navButtons.values()) {
+                btn.setBackground(Color.WHITE);
+                btn.setForeground(new Color(51, 51, 51)); // 深黑色
+            }
+            // 高亮当前选中的按钮 - 蓝色背景，白色文字
+            button.setBackground(new Color(51, 153, 255));
+            button.setForeground(Color.WHITE); // 白色文字在蓝色背景上更清晰
+            
+            // 切换面板
+            switchPanel(text);
+        });
+        
+        navButtons.put(text, button);
+        navigationPanel.add(button);
         navigationPanel.add(Box.createVerticalStrut(10));
-        navigationPanel.add(inventoryButton);
-        navigationPanel.add(Box.createVerticalStrut(10));
-        navigationPanel.add(salesButton);
-        navigationPanel.add(Box.createVerticalStrut(10));
-        navigationPanel.add(statisticsButton);
+    }
+    
+    /**
+     * 切换内容面板
+     */
+    private void switchPanel(String moduleName) {
+        currentModule = moduleName;
+        updateModuleLabel();
         
-        add(navigationPanel, BorderLayout.WEST);
+        switch (moduleName) {
+            case "宠物管理":
+                showPetManagement();
+                break;
+            case "库存管理":
+                showInventoryManagement();
+                break;
+            case "销售管理":
+                showSalesManagement();
+                break;
+            case "数据统计":
+                showStatistics();
+                break;
+        }
+    }
+    
+    /**
+     * 更新顶部模块标签
+     */
+    private void updateModuleLabel() {
+        moduleLabel.setText(currentModule);
+    }
+    
+    /**
+     * 退出登录
+     */
+    private void logout() {
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            "确定要退出登录吗？",
+            "确认退出",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if (result == JOptionPane.YES_OPTION) {
+            // 关闭主窗口
+            dispose();
+            
+            // 重新显示登录窗口
+            LoginDialog loginDialog = new LoginDialog(null);
+            if (loginDialog.showLogin()) {
+                // 登录成功，创建新的主窗口
+                currentUser = loginDialog.getUsername();
+                MainFrame newMainFrame = new MainFrame();
+                newMainFrame.currentUser = currentUser;
+                newMainFrame.setVisible(true);
+            } else {
+                // 取消登录，退出系统
+                System.exit(0);
+            }
+        }
     }
     
     private void createContentPanel() {
+        // 创建内容区域
         contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
@@ -166,28 +257,28 @@ public class MainFrame extends JFrame {
         setStatus("正在加载宠物管理界面...");
         PetManagementPanel petPanel = new PetManagementPanel();
         setContentPanel(petPanel);
-        setStatus("宠物管理");
+        setStatus("宠物管理 - 查看和管理宠物信息");
     }
     
     private void showInventoryManagement() {
         setStatus("正在加载库存管理界面...");
         InventoryManagementPanel inventoryPanel = new InventoryManagementPanel();
         setContentPanel(inventoryPanel);
-        setStatus("库存管理");
+        setStatus("库存管理 - 查看和更新库存信息");
     }
     
     private void showSalesManagement() {
         setStatus("正在加载销售管理界面...");
         SalesManagementPanel salesPanel = new SalesManagementPanel();
         setContentPanel(salesPanel);
-        setStatus("销售管理");
+        setStatus("销售管理 - 查看和添加销售记录");
     }
     
     private void showStatistics() {
         setStatus("正在加载数据统计界面...");
         StatisticsPanel statisticsPanel = new StatisticsPanel();
         setContentPanel(statisticsPanel);
-        setStatus("数据统计");
+        setStatus("数据统计 - 查看统计分析图表");
     }
     
     private void createStatusBar() {
@@ -211,7 +302,7 @@ public class MainFrame extends JFrame {
     private void updateTime() {
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        timeLabel.setText("管理员 | " + now.format(formatter));
+        timeLabel.setText(now.format(formatter));
     }
     
     public void setStatus(String status) {
