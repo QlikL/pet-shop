@@ -8,6 +8,8 @@ import com.petshop.model.Inventory;
 import com.petshop.model.SalesRecord;
 import com.petshop.service.InventoryService;
 import com.petshop.service.SalesService;
+import com.petshop.util.DialogUtil;
+import com.petshop.util.Theme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,24 +47,25 @@ public class StatisticsPanel extends JPanel {
     }
     
     private void initializePanel() {
-        setLayout(new BorderLayout(10, 10));
-        setBackground(new Color(245, 247, 250));
-        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setLayout(new BorderLayout(12, 12));
+        setBackground(Theme.BG_SECONDARY);
+        setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
     }
     
     private void createComponents() {
         // 创建标题面板
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
-        JLabel titleLabel = new JLabel("数据统计", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(51, 51, 51));
-        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
+        JLabel titleLabel = Theme.createTitleLabel("数据统计");
+        titlePanel.add(titleLabel, BorderLayout.WEST);
         add(titlePanel, BorderLayout.NORTH);
         
         // 创建选项卡面板
         tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        tabbedPane.setFont(Theme.FONT_BODY);
+        tabbedPane.setBackground(Theme.BG_PRIMARY);
+        tabbedPane.setForeground(Theme.TEXT_PRIMARY);
         
         // 添加库存统计选项卡
         JPanel inventoryStatsPanel = createInventoryStatsPanel();
@@ -77,6 +80,7 @@ public class StatisticsPanel extends JPanel {
     
     private JPanel createInventoryStatsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Theme.BG_PRIMARY);
         
         // 创建库存统计图表
         JFreeChart inventoryChart = createInventoryChart();
@@ -84,10 +88,11 @@ public class StatisticsPanel extends JPanel {
         panel.add(chartPanel, BorderLayout.CENTER);
         
         // 按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton refreshButton = new JButton("刷新统计");
-        JButton exportImageButton = new JButton("导出图片");
-        JButton exportPdfButton = new JButton("导出PDF");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
+        buttonPanel.setOpaque(false);
+        JButton refreshButton = Theme.createPrimaryButton("刷新统计");
+        JButton exportImageButton = Theme.createSecondaryButton("导出图片");
+        JButton exportPdfButton = Theme.createSecondaryButton("导出PDF");
         
         refreshButton.addActionListener(e -> refreshInventoryStats());
         exportImageButton.addActionListener(e -> exportInventoryImage());
@@ -150,6 +155,7 @@ public class StatisticsPanel extends JPanel {
     
     private JPanel createSalesStatsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Theme.BG_PRIMARY);
         
         // 创建销售统计图表
         JFreeChart salesChart = createSalesChart();
@@ -157,10 +163,11 @@ public class StatisticsPanel extends JPanel {
         panel.add(chartPanel, BorderLayout.CENTER);
         
         // 按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton refreshButton = new JButton("刷新统计");
-        JButton exportImageButton = new JButton("导出图片");
-        JButton exportPdfButton = new JButton("导出PDF");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
+        buttonPanel.setOpaque(false);
+        JButton refreshButton = Theme.createPrimaryButton("刷新统计");
+        JButton exportImageButton = Theme.createSecondaryButton("导出图片");
+        JButton exportPdfButton = Theme.createSecondaryButton("导出PDF");
         
         refreshButton.addActionListener(e -> refreshSalesStats());
         exportImageButton.addActionListener(e -> exportSalesImage());
@@ -228,11 +235,11 @@ public class StatisticsPanel extends JPanel {
      * 设置图表的中文字体
      */
     private void setChineseFont(JFreeChart chart) {
-        Font font = new Font("微软雅黑", Font.PLAIN, 12);
+        Font font = Theme.FONT_SMALL;
         
         // 设置标题字体
         if (chart.getTitle() != null) {
-            chart.getTitle().setFont(new Font("微软雅黑", Font.BOLD, 16));
+            chart.getTitle().setFont(Theme.FONT_TITLE);
         }
         
         // 设置图例字体
@@ -260,9 +267,9 @@ public class StatisticsPanel extends JPanel {
             JFreeChart inventoryChart = createInventoryChart();
             ChartPanel chartPanel = (ChartPanel) ((JPanel) ((JScrollPane) ((JPanel) getParent().getComponent(1)).getComponent(0)).getViewport().getView()).getComponent(0);
             chartPanel.setChart(inventoryChart);
-            JOptionPane.showMessageDialog(this, "库存统计已刷新", "提示", JOptionPane.INFORMATION_MESSAGE);
+            DialogUtil.showInfo(this, "库存统计已刷新");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "刷新失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+            DialogUtil.showError(this, "刷新失败：" + ex.getMessage());
         }
     }
     
@@ -285,9 +292,9 @@ public class StatisticsPanel extends JPanel {
                 // 保存为PNG图片
                 org.jfree.chart.ChartUtils.saveChartAsPNG(file, inventoryChart, 800, 600);
                 
-                JOptionPane.showMessageDialog(this, "图片导出成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+                DialogUtil.showInfo(this, "图片导出成功");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "图片导出失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                DialogUtil.showError(this, "图片导出失败：" + ex.getMessage());
             }
         }
     }
@@ -321,9 +328,9 @@ public class StatisticsPanel extends JPanel {
                 
                 document.close();
                 
-                JOptionPane.showMessageDialog(this, "PDF导出成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+                DialogUtil.showInfo(this, "PDF导出成功");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "PDF导出失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                DialogUtil.showError(this, "PDF导出失败：" + ex.getMessage());
             }
         }
     }
@@ -334,9 +341,9 @@ public class StatisticsPanel extends JPanel {
             JFreeChart salesChart = createSalesChart();
             ChartPanel chartPanel = (ChartPanel) ((JPanel) ((JScrollPane) ((JPanel) getParent().getComponent(1)).getComponent(0)).getViewport().getView()).getComponent(0);
             chartPanel.setChart(salesChart);
-            JOptionPane.showMessageDialog(this, "销售统计已刷新", "提示", JOptionPane.INFORMATION_MESSAGE);
+            DialogUtil.showInfo(this, "销售统计已刷新");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "刷新失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+            DialogUtil.showError(this, "刷新失败：" + ex.getMessage());
         }
     }
     
@@ -359,9 +366,9 @@ public class StatisticsPanel extends JPanel {
                 // 保存为PNG图片
                 org.jfree.chart.ChartUtils.saveChartAsPNG(file, salesChart, 800, 600);
                 
-                JOptionPane.showMessageDialog(this, "图片导出成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+                DialogUtil.showInfo(this, "图片导出成功");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "图片导出失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                DialogUtil.showError(this, "图片导出失败：" + ex.getMessage());
             }
         }
     }
@@ -395,9 +402,9 @@ public class StatisticsPanel extends JPanel {
                 
                 document.close();
                 
-                JOptionPane.showMessageDialog(this, "PDF导出成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+                DialogUtil.showInfo(this, "PDF导出成功");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "PDF导出失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                DialogUtil.showError(this, "PDF导出失败：" + ex.getMessage());
             }
         }
     }

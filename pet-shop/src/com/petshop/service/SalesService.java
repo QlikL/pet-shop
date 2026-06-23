@@ -26,6 +26,10 @@ public class SalesService {
         this.salesRecordDao = salesRecordDao;
     }
 
+    /**
+     * @deprecated 此方法已废弃，销售记录现在由宠物状态变更自动生成
+     */
+    @Deprecated
     public SalesRecord addSale(String petId, int quantity) throws BusinessException {
         Pet pet = petDao.findById(petId);
         if (pet == null) throw new BusinessException("宠物不存在");
@@ -40,7 +44,7 @@ public class SalesService {
         
         String recordId = UUID.randomUUID().toString().substring(0, 8);
         // 使用pet.getBreed()代替pet.getName()
-        SalesRecord record = new SalesRecord(recordId, petId, pet.getBreed(), quantity, pet.getPrice());
+        SalesRecord record = new SalesRecord(recordId, petId, pet.getBreed(), pet.getSpecies(), quantity * pet.getPrice());
         salesRecordDao.add(record);
         return record;
     }
@@ -56,6 +60,32 @@ public class SalesService {
         return salesRecordDao.findByTimeRange(start, end);
     }
 
+    /**
+     * 创建销售记录（当宠物状态变为已售时）
+     */
+    public SalesRecord createSaleForSoldPet(Pet pet) throws BusinessException {
+        if (pet == null) throw new BusinessException("宠物不存在");
+        
+        String recordId = UUID.randomUUID().toString().substring(0, 8);
+        // 销售金额为正数
+        SalesRecord record = new SalesRecord(recordId, pet.getId(), pet.getBreed(), pet.getSpecies(), pet.getPrice());
+        salesRecordDao.add(record);
+        return record;
+    }
+
+    /**
+     * 删除销售记录（当宠物状态从已售改为其他状态时）
+     */
+    public boolean removeSaleForUnsoldPet(String petId) throws BusinessException {
+        if (petId == null || petId.trim().isEmpty()) throw new BusinessException("宠物ID不能为空");
+        
+        boolean deleted = salesRecordDao.deleteByPetId(petId);
+        if (!deleted) {
+            throw new BusinessException("未找到该宠物的销售记录");
+        }
+        return true;
+    }
+
     public double getTotalSalesAmount() {
         double total = 0;
         for (SalesRecord record : salesRecordDao.findAll()) total += record.getTotalPrice();
@@ -64,7 +94,14 @@ public class SalesService {
 
     public int getTotalSalesQuantity() {
         int total = 0;
-        for (SalesRecord record : salesRecordDao.findAll()) total += record.getQuantity();
+        for (SalesRecord record : salesRecordDao.findAll()) {
+            // 根据销售金额正负判断是增加还是减少
+            if (record.getTotalPrice() > 0) {
+                total += 1; // 每条正数记录代表一只宠物
+            } else {
+                total -= 1; // 每条负数记录代表回退了一只宠物
+            }
+        }
         return total;
     }
 }

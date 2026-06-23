@@ -8,14 +8,14 @@ public class Pet implements Serializable {
     private String id;
     private String breed; // 品种（原来是name）
     private String species; // 种类（狗、猫、其他）
-    private int age;
+    private double age;
     private double price;
     private String status;
 
     public Pet() {
     }
 
-    public Pet(String id, String breed, String species, int age, double price, String status) {
+    public Pet(String id, String breed, String species, double age, double price, String status) {
         this.id = id;
         this.breed = breed;
         this.species = species;
@@ -30,8 +30,8 @@ public class Pet implements Serializable {
     public void setBreed(String breed) { this.breed = breed; }
     public String getSpecies() { return species; }
     public void setSpecies(String species) { this.species = species; }
-    public int getAge() { return age; }
-    public void setAge(int age) { this.age = age; }
+    public double getAge() { return age; }
+    public void setAge(double age) { this.age = age; }
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
     public String getStatus() { return status; }

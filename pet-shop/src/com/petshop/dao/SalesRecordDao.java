@@ -57,4 +57,30 @@ public class SalesRecordDao {
         }
         return result;
     }
+
+    /**
+     * 根据宠物ID查找并删除最新的销售记录（用于状态回退）
+     */
+    public boolean deleteByPetId(String petId) {
+        // 找到该宠物的最新销售记录
+        SalesRecord latestRecord = null;
+        int index = -1;
+        
+        for (int i = 0; i < records.size(); i++) {
+            SalesRecord record = records.get(i);
+            if (record.getPetId().equals(petId)) {
+                if (latestRecord == null || record.getSaleTime().isAfter(latestRecord.getSaleTime())) {
+                    latestRecord = record;
+                    index = i;
+                }
+            }
+        }
+        
+        if (index != -1) {
+            records.remove(index);
+            saveRecords();
+            return true;
+        }
+        return false;
+    }
 }

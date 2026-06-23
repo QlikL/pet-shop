@@ -36,12 +36,7 @@ public class SalesController {
     }
 
     private void addSale() {
-        try {
-            String[] info = view.getSaleInfo();
-            SalesRecord record = salesService.addSale(info[0], Integer.parseInt(info[1]));
-            view.showMessage("销售成功，记录ID：" + record.getRecordId());
-        } catch (BusinessException e) { view.showMessage("销售失败：" + e.getMessage());
-        } catch (NumberFormatException e) { view.showMessage("数量格式错误"); }
+        view.showMessage("销售记录已改为自动生成！\n当宠物状态变为'已售'时自动创建销售记录。");
     }
 
     private void querySale() {
@@ -49,7 +44,7 @@ public class SalesController {
             SalesRecord record = salesService.getSaleRecord(view.getRecordId());
             view.showMessage("记录ID：" + record.getRecordId());
             view.showMessage("宠物名称：" + record.getPetName());
-            view.showMessage("数量：" + record.getQuantity());
+            view.showMessage("种类：" + record.getSpecies());
             view.showMessage("总价：" + record.getTotalPrice());
             view.showMessage("时间：" + record.getSaleTime());
         } catch (BusinessException e) { view.showMessage("查询失败：" + e.getMessage()); }

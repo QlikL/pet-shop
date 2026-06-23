@@ -41,7 +41,7 @@ public class PetController {
     private void addPet() {
         try {
             String[] info = view.getAddPetInfo();
-            Pet pet = petService.addPet(info[0], info[1], info[2], Integer.parseInt(info[3]),
+            Pet pet = petService.addPet(info[0], info[1], info[2], Double.parseDouble(info[3]),
                     Double.parseDouble(info[4]), info[5]);
             // 使用getBreed()代替getName()
             view.showMessage("添加成功：" + pet.getBreed());
@@ -66,7 +66,7 @@ public class PetController {
             String id = view.getPetId();
             petService.getPet(id);
             String[] info = view.getUpdatePetInfo();
-            int age = info[2].isEmpty() ? -1 : Integer.parseInt(info[2]);
+            double age = info[2].isEmpty() ? -1 : Double.parseDouble(info[2]);
             double price = info[3].isEmpty() ? -1 : Double.parseDouble(info[3]);
             petService.updatePet(id, info[0], info[1], age, price, info[4]);
             view.showMessage("修改成功");

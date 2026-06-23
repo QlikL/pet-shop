@@ -5,7 +5,7 @@ public class Cat extends Pet {
 
     public Cat() {}
 
-    public Cat(String id, String name, int age, double price, String status, String color) {
+    public Cat(String id, String name, double age, double price, String status, String color) {
         super(id, name, "猫", age, price, status);
         this.color = color;
     }

@@ -40,12 +40,12 @@ public class SalesManagementView {
 
     public void showSalesList(List<SalesRecord> records) {
         if (records.isEmpty()) { System.out.println("没有销售记录"); return; }
-        String[] headers = {"记录ID", "宠物ID", "宠物名称", "数量", "总价", "销售时间"};
+        String[] headers = {"记录ID", "宠物ID", "宠物名称", "种类", "总价", "销售时间"};
         String[][] data = new String[records.size()][6];
         for (int i = 0; i < records.size(); i++) {
             SalesRecord record = records.get(i);
             data[i][0] = record.getRecordId(); data[i][1] = record.getPetId();
-            data[i][2] = record.getPetName(); data[i][3] = String.valueOf(record.getQuantity());
+            data[i][2] = record.getPetName(); data[i][3] = record.getSpecies();
             data[i][4] = String.format("%.2f", record.getTotalPrice());
             data[i][5] = record.getSaleTime().toString().substring(0, 19);
         }

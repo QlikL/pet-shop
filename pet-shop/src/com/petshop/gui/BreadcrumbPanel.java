@@ -1,5 +1,6 @@
 package com.petshop.gui;
 
+import com.petshop.util.Theme;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ public class BreadcrumbPanel extends JPanel {
     
     public BreadcrumbPanel() {
         setLayout(new FlowLayout(FlowLayout.LEFT, 5, 10));
-        setBackground(Color.WHITE);
+        setBackground(Theme.BG_PRIMARY);
         setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     }
     
@@ -38,16 +39,16 @@ public class BreadcrumbPanel extends JPanel {
         for (int i = 0; i < breadcrumbs.size(); i++) {
             // 添加链接文本
             JLabel label = new JLabel(breadcrumbs.get(i));
-            label.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+            label.setFont(Theme.FONT_BODY);
             label.setCursor(new Cursor(Cursor.HAND_CURSOR));
             
             if (i == breadcrumbs.size() - 1) {
                 // 最后一项（当前页）使用深色
-                label.setForeground(new Color(51, 51, 51));
-                label.setFont(new Font("微软雅黑", Font.BOLD, 14));
+                label.setForeground(Theme.TEXT_PRIMARY);
+                label.setFont(Theme.FONT_SUBTITLE);
             } else {
                 // 前面的项使用蓝色链接样式
-                label.setForeground(new Color(51, 153, 255));
+                label.setForeground(Theme.PRIMARY);
                 
                 // 添加点击事件
                 int index = i;
@@ -75,8 +76,8 @@ public class BreadcrumbPanel extends JPanel {
             // 如果不是最后一项，添加分隔符
             if (i < breadcrumbs.size() - 1) {
                 JLabel separator = new JLabel(">");
-                separator.setForeground(new Color(153, 153, 153));
-                separator.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+                separator.setForeground(Theme.TEXT_SECONDARY);
+                separator.setFont(Theme.FONT_BODY);
                 add(separator);
             }
         }

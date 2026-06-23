@@ -5,6 +5,7 @@ import com.petshop.service.SalesService;
 import com.petshop.dao.PetDao;
 import com.petshop.dao.InventoryDao;
 import com.petshop.dao.SalesRecordDao;
+import com.petshop.util.Theme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -38,37 +39,36 @@ public class SalesManagementPanel extends JPanel {
     }
     
     private void initializePanel() {
-        setLayout(new BorderLayout(10, 10));
-        setBackground(new Color(245, 247, 250));
-        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setLayout(new BorderLayout(12, 12));
+        setBackground(Theme.BG_SECONDARY);
+        setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
     }
     
     private void createComponents() {
         // 创建标题面板（包含标题和图标按钮）
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
         
-        JLabel titleLabel = new JLabel("销售管理", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(51, 51, 51));
-        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        JLabel titleLabel = Theme.createTitleLabel("销售管理");
+        titlePanel.add(titleLabel, BorderLayout.WEST);
         
         // 创建右上角按钮面板
-        JPanel iconButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel iconButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         iconButtonPanel.setOpaque(false);
         
         // 添加销售记录按钮
-        JButton addButton = createTextButton("添加", "添加销售记录", Color.WHITE);
+        JButton addButton = Theme.createPrimaryButton("添加记录");
         addButton.addActionListener(e -> addSalesRecord());
         iconButtonPanel.add(addButton);
         
         // 查询销售记录按钮
-        JButton queryButton = createTextButton("查询", "查询销售记录", Color.WHITE);
+        JButton queryButton = Theme.createSecondaryButton("查询");
         queryButton.addActionListener(e -> querySalesRecord());
         iconButtonPanel.add(queryButton);
         
         // 刷新列表按钮
-        JButton refreshButton = createTextButton("刷新", "刷新列表", Color.WHITE);
+        JButton refreshButton = Theme.createSecondaryButton("刷新");
         refreshButton.addActionListener(e -> loadSalesData());
         iconButtonPanel.add(refreshButton);
         
@@ -77,12 +77,10 @@ public class SalesManagementPanel extends JPanel {
         
         // 创建表格
         createSalesTable();
-        
-        // 移除底部按钮面板，不再需要
     }
     
     private void createSalesTable() {
-        String[] columnNames = {"记录ID", "宠物ID", "宠物品种", "销售数量", "销售时间", "销售金额"};
+        String[] columnNames = {"记录ID", "宠物ID", "宠物品种", "种类", "销售时间", "销售金额"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -93,48 +91,57 @@ public class SalesManagementPanel extends JPanel {
         salesTable = new JTable(tableModel);
         salesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         salesTable.getTableHeader().setReorderingAllowed(false);
-        salesTable.setRowHeight(30);
-        salesTable.setFont(new Font("微软雅黑", Font.PLAIN, 13));
-        salesTable.getTableHeader().setFont(new Font("微软雅黑", Font.BOLD, 14));
-        salesTable.getTableHeader().setBackground(new Color(240, 242, 245)); // 浅灰蓝背景
-        salesTable.getTableHeader().setForeground(new Color(51, 51, 51)); // 深黑色文字
-        salesTable.setGridColor(new Color(230, 230, 230));
-        salesTable.setShowGrid(true);
-        salesTable.setIntercellSpacing(new Dimension(1, 1));
+        
+        // 使用Theme美化表格
+        Theme.styleTable(salesTable);
         
         // 创建行排序器
         sorter = new TableRowSorter<>(tableModel);
         
         // 设置每列的排序规则
-        sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER); // 记录ID - 字符串排序
-        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 宠物ID - 字符串排序
-        sorter.setComparator(2, String.CASE_INSENSITIVE_ORDER); // 宠物品种 - 字符串排序
-        sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 销售数量 - 整数排序
+        sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER);
+        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER);
+        sorter.setComparator(2, String.CASE_INSENSITIVE_ORDER);
+        sorter.setComparator(3, String.CASE_INSENSITIVE_ORDER);
         sorter.setComparator(4, (Comparator<Object>) (o1, o2) -> {
             if (o1 instanceof java.time.LocalDateTime && o2 instanceof java.time.LocalDateTime) {
                 return ((java.time.LocalDateTime)o1).compareTo((java.time.LocalDateTime)o2);
             }
             return String.CASE_INSENSITIVE_ORDER.compare(o1.toString(), o2.toString());
-        }); // 销售时间 - LocalDateTime排序
+        });
         sorter.setComparator(5, (Comparator<Object>) (o1, o2) -> {
             try {
-                // 尝试将值转换为Double
                 double val1 = (o1 instanceof Number) ? ((Number) o1).doubleValue() : Double.parseDouble(o1.toString());
                 double val2 = (o2 instanceof Number) ? ((Number) o2).doubleValue() : Double.parseDouble(o2.toString());
                 return Double.compare(val1, val2);
             } catch (NumberFormatException e) {
-                // 如果无法解析（如空字符串），按字符串比较
                 return o1.toString().compareTo(o2.toString());
             }
-        }); // 销售金额 - 双精度排序
+        });
         
         salesTable.setRowSorter(sorter);
         
+        // 交替行颜色
+        salesTable.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                java.awt.Component c = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+                if (!isSelected) {
+                    setBackground(row % 2 == 0 ? Theme.BG_PRIMARY : Theme.BG_TERTIARY);
+                    setForeground(Theme.TEXT_PRIMARY);
+                } else {
+                    setBackground(Theme.PRIMARY);
+                    setForeground(Color.WHITE);
+                }
+                return c;
+            }
+        });
+        
         JScrollPane scrollPane = new JScrollPane(salesTable);
-        scrollPane.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
+        scrollPane.setBorder(BorderFactory.createLineBorder(Theme.BORDER_LIGHTER, 1));
+        scrollPane.getViewport().setBackground(Theme.BG_PRIMARY);
         add(scrollPane, BorderLayout.CENTER);
         
         // 创建底部汇总面板
@@ -147,55 +154,28 @@ public class SalesManagementPanel extends JPanel {
      * 创建底部汇总面板
      */
     private void createSummaryPanel() {
-        summaryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
-        summaryPanel.setBackground(new Color(248, 249, 250));
+        summaryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 24, 12));
+        summaryPanel.setBackground(Theme.BG_PRIMARY);
         summaryPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+            BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.BORDER_LIGHT),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
         ));
         
-        Font labelFont = new Font("微软雅黑", Font.PLAIN, 14);
-        Font valueFont = new Font("微软雅黑", Font.BOLD, 15);
+        JLabel totalQtyLabel = Theme.createBodyLabel("总销售数量:");
+        totalQuantityLabel = Theme.createSubtitleLabel("0");
+        totalQuantityLabel.setForeground(Theme.SUCCESS);
         
-        JLabel totalQtyLabel = new JLabel("总销售数量:");
-        totalQtyLabel.setFont(labelFont);
-        totalQtyLabel.setForeground(new Color(100, 100, 100));
-        
-        totalQuantityLabel = new JLabel("0");
-        totalQuantityLabel.setFont(valueFont);
-        totalQuantityLabel.setForeground(new Color(76, 175, 80));
-        
-        JLabel totalAmtLabel = new JLabel("总销售金额:");
-        totalAmtLabel.setFont(labelFont);
-        totalAmtLabel.setForeground(new Color(100, 100, 100));
-        
-        totalAmountLabel = new JLabel("¥0.00");
-        totalAmountLabel.setFont(valueFont);
-        totalAmountLabel.setForeground(new Color(33, 150, 243));
+        JLabel totalAmtLabel = Theme.createBodyLabel("总销售金额:");
+        totalAmountLabel = Theme.createSubtitleLabel("¥0.00");
+        totalAmountLabel.setForeground(Theme.PRIMARY);
         
         summaryPanel.add(totalQtyLabel);
         summaryPanel.add(totalQuantityLabel);
-        summaryPanel.add(Box.createHorizontalStrut(20));
+        summaryPanel.add(Box.createHorizontalStrut(24));
         summaryPanel.add(totalAmtLabel);
         summaryPanel.add(totalAmountLabel);
         
         add(summaryPanel, BorderLayout.SOUTH);
-    }
-    
-    /**
-     * 创建文字按钮
-     */
-    private JButton createTextButton(String text, String tooltip, Color bgColor) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        button.setBackground(bgColor);
-        button.setForeground(Color.BLACK);
-        button.setToolTipText(tooltip);
-        button.setFocusPainted(false);
-        button.setBorderPainted(true);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(70, 35));
-        return button;
     }
     
     private void loadSalesData() {
@@ -210,14 +190,18 @@ public class SalesManagementPanel extends JPanel {
                 record.getRecordId(),
                 record.getPetId(),
                 record.getPetName(),
-                record.getQuantity(),
+                record.getSpecies(),
                 record.getSaleTime(),
                 record.getTotalPrice()
             };
             tableModel.addRow(row);
             
-            // 累加汇总数据
-            totalQuantity += record.getQuantity();
+            // 累加汇总数据（根据销售金额正负判断是增加还是减少）
+            if (record.getTotalPrice() > 0) {
+                totalQuantity += 1; // 每条正数记录代表一只宠物
+            } else {
+                totalQuantity -= 1; // 每条负数记录代表回退了一只宠物
+            }
             totalAmount += record.getTotalPrice();
         }
         
@@ -227,103 +211,45 @@ public class SalesManagementPanel extends JPanel {
     }
     
     private void addSalesRecord() {
-        // 创建添加销售记录对话框
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "添加销售记录", true);
-        dialog.setSize(400, 250);
-        dialog.setLocationRelativeTo(this);
-        
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        JTextField petIdField = new JTextField(20);
-        JTextField quantityField = new JTextField(20);
-        
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("宠物ID:"), gbc);
-        gbc.gridx = 1;
-        panel.add(petIdField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("销售数量:"), gbc);
-        gbc.gridx = 1;
-        panel.add(quantityField, gbc);
-        
-        // 创建按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton saveButton = new JButton("保存");
-        JButton cancelButton = new JButton("取消");
-        
-        saveButton.addActionListener(e -> {
-            try {
-                String petId = petIdField.getText().trim();
-                String quantityStr = quantityField.getText().trim();
-                
-                if (petId.isEmpty() || quantityStr.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "请填写所有字段", "错误", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                
-                int quantity = Integer.parseInt(quantityStr);
-                salesService.addSale(petId, quantity);
-                loadSalesData();
-                dialog.dispose();
-                JOptionPane.showMessageDialog(this, "销售记录添加成功", "提示", JOptionPane.INFORMATION_MESSAGE);
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dialog, "销售数量必须是数字", "错误", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "添加失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        
-        cancelButton.addActionListener(e -> dialog.dispose());
-        
-        buttonPanel.add(saveButton);
-        buttonPanel.add(cancelButton);
-        
-        gbc.gridx = 0; gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        panel.add(buttonPanel, gbc);
-        
-        dialog.add(panel);
-        dialog.setVisible(true);
+        // 提示用户：销售记录由宠物状态变更自动生成
+        com.petshop.util.DialogUtil.showInfo(this, "销售记录已改为自动生成！\n\n当您在宠物管理中将宠物状态改为'已售'时，\n会自动创建销售记录。\n当将'已售'宠物改为其他状态时，\n会自动删除对应的销售记录。");
     }
     
     private void querySalesRecord() {
         // 创建查询销售记录对话框
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "查询销售记录", true);
-        dialog.setSize(350, 200);
+        dialog.setSize(380, 220);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new GridBagLayout());
+        JPanel panel = Theme.createDialogPanel();
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        JTextField recordIdField = new JTextField(20);
+        JTextField recordIdField = Theme.createTextField(20);
         
         gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("记录ID:"), gbc);
+        panel.add(Theme.createBodyLabel("记录ID:"), gbc);
         gbc.gridx = 1;
         panel.add(recordIdField, gbc);
         
         // 创建按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton queryButton = new JButton("查询");
-        JButton cancelButton = new JButton("取消");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 8));
+        buttonPanel.setOpaque(false);
+        JButton queryButton = Theme.createPrimaryButton("查询");
+        JButton cancelButton = Theme.createSecondaryButton("取消");
         
         queryButton.addActionListener(e -> {
             try {
                 String recordId = recordIdField.getText().trim();
                 if (recordId.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "请输入记录ID", "错误", JOptionPane.ERROR_MESSAGE);
+                    com.petshop.util.DialogUtil.showError(dialog, "请输入记录ID");
                     return;
                 }
                 
                 SalesRecord record = salesService.getSaleRecord(recordId);
                 if (record == null) {
-                    JOptionPane.showMessageDialog(dialog, "未找到该销售记录", "查询结果", JOptionPane.INFORMATION_MESSAGE);
+                    com.petshop.util.DialogUtil.showInfo(dialog, "查询结果", "未找到该销售记录");
                 } else {
                     // 更新表格显示查询结果
                     tableModel.setRowCount(0);
@@ -331,7 +257,7 @@ public class SalesManagementPanel extends JPanel {
                         record.getRecordId(),
                         record.getPetId(),
                         record.getPetName(),
-                        record.getQuantity(),
+                        record.getSpecies(),
                         record.getSaleTime(),
                         record.getTotalPrice()
                     };
@@ -339,19 +265,19 @@ public class SalesManagementPanel extends JPanel {
                     dialog.dispose();
                 }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "查询失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                com.petshop.util.DialogUtil.showError(dialog, "查询失败：" + ex.getMessage());
             }
         });
-
+    
         cancelButton.addActionListener(e -> dialog.dispose());
-        
+                
         buttonPanel.add(queryButton);
         buttonPanel.add(cancelButton);
-        
+                
         gbc.gridx = 0; gbc.gridy = 1;
         gbc.gridwidth = 2;
         panel.add(buttonPanel, gbc);
-        
+                
         dialog.add(panel);
         dialog.setVisible(true);
     }
@@ -359,38 +285,39 @@ public class SalesManagementPanel extends JPanel {
     private void queryByTimeRange() {
         // 创建按时间范围查询对话框
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "按时间范围查询", true);
-        dialog.setSize(400, 250);
+        dialog.setSize(440, 280);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new GridBagLayout());
+        JPanel panel = Theme.createDialogPanel();
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        JTextField startDateField = new JTextField(20);
-        JTextField endDateField = new JTextField(20);
+        JTextField startDateField = Theme.createTextField(20);
+        JTextField endDateField = Theme.createTextField(20);
         
         gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("开始时间 (yyyy-MM-dd):"), gbc);
+        panel.add(Theme.createBodyLabel("开始时间 (yyyy-MM-dd):"), gbc);
         gbc.gridx = 1;
         panel.add(startDateField, gbc);
         
         gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("结束时间 (yyyy-MM-dd):"), gbc);
+        panel.add(Theme.createBodyLabel("结束时间 (yyyy-MM-dd):"), gbc);
         gbc.gridx = 1;
         panel.add(endDateField, gbc);
         
         // 创建按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton queryButton = new JButton("查询");
-        JButton cancelButton = new JButton("取消");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 8));
+        buttonPanel.setOpaque(false);
+        JButton queryButton = Theme.createPrimaryButton("查询");
+        JButton cancelButton = Theme.createSecondaryButton("取消");
         
         queryButton.addActionListener(e -> {
             String startDate = startDateField.getText().trim();
             String endDate = endDateField.getText().trim();
             
             if (startDate.isEmpty() || endDate.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "请输入开始和结束时间", "错误", JOptionPane.ERROR_MESSAGE);
+                com.petshop.util.DialogUtil.showError(dialog, "请输入开始和结束时间");
                 return;
             }
             
@@ -407,7 +334,7 @@ public class SalesManagementPanel extends JPanel {
                         record.getRecordId(),
                         record.getPetId(),
                         record.getPetName(),
-                        record.getQuantity(),
+                        record.getSpecies(),
                         record.getSaleTime(),
                         record.getTotalPrice()
                     };
@@ -415,9 +342,9 @@ public class SalesManagementPanel extends JPanel {
                 }
                 dialog.dispose();
             } catch (java.time.format.DateTimeParseException ex) {
-                JOptionPane.showMessageDialog(dialog, "时间格式错误，请使用yyyy-MM-dd格式", "错误", JOptionPane.ERROR_MESSAGE);
+                com.petshop.util.DialogUtil.showError(dialog, "时间格式错误，请使用yyyy-MM-dd格式");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "查询失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                com.petshop.util.DialogUtil.showError(dialog, "查询失败：" + ex.getMessage());
             }
         });
         
@@ -441,6 +368,8 @@ public class SalesManagementPanel extends JPanel {
         dialog.setLocationRelativeTo(this);
         
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Theme.BG_PRIMARY);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
         // 计算统计数据
         List<SalesRecord> records = salesService.getAllSales();
@@ -449,29 +378,50 @@ public class SalesManagementPanel extends JPanel {
         
         for (SalesRecord record : records) {
             totalAmount += record.getTotalPrice();
-            totalQuantity += record.getQuantity();
+            if (record.getTotalPrice() > 0) {
+                totalQuantity += 1; // 每条正数记录代表一只宠物
+            } else {
+                totalQuantity -= 1; // 每条负数记录代表回退了一只宠物
+            }
         }
 
         int totalRecords = records.size();
         
         // 创建统计信息面板
-        JPanel statsPanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel statsPanel = new JPanel(new GridLayout(3, 2, 12, 12));
+        statsPanel.setBackground(Theme.BG_TERTIARY);
+        statsPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Theme.BORDER_LIGHTER),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
         
-        statsPanel.add(new JLabel("销售记录数:"));
-        statsPanel.add(new JLabel(String.valueOf(totalRecords)));
+        JLabel recordLabel = Theme.createBodyLabel("销售记录数:");
+        recordLabel.setForeground(Theme.TEXT_SECONDARY);
+        JLabel recordVal = Theme.createSubtitleLabel(String.valueOf(totalRecords));
+        recordVal.setForeground(Theme.PRIMARY);
+        statsPanel.add(recordLabel);
+        statsPanel.add(recordVal);
         
-        statsPanel.add(new JLabel("总销售数量:"));
-        statsPanel.add(new JLabel(String.valueOf(totalQuantity)));
+        JLabel qtyLabel = Theme.createBodyLabel("总销售数量:");
+        qtyLabel.setForeground(Theme.TEXT_SECONDARY);
+        JLabel qtyVal = Theme.createSubtitleLabel(String.valueOf(totalQuantity));
+        qtyVal.setForeground(Theme.SUCCESS);
+        statsPanel.add(qtyLabel);
+        statsPanel.add(qtyVal);
         
-        statsPanel.add(new JLabel("总销售额:"));
-        statsPanel.add(new JLabel(String.format("%.2f", totalAmount)));
+        JLabel amtLabel = Theme.createBodyLabel("总销售额:");
+        amtLabel.setForeground(Theme.TEXT_SECONDARY);
+        JLabel amtVal = Theme.createSubtitleLabel(String.format("¥%.2f", totalAmount));
+        amtVal.setForeground(Theme.PRIMARY);
+        statsPanel.add(amtLabel);
+        statsPanel.add(amtVal);
         
         panel.add(statsPanel, BorderLayout.CENTER);
         
         // 创建按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton closeButton = new JButton("关闭");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 8));
+        buttonPanel.setOpaque(false);
+        JButton closeButton = Theme.createSecondaryButton("关闭");
         closeButton.addActionListener(e -> dialog.dispose());
         buttonPanel.add(closeButton);
         

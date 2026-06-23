@@ -1,5 +1,6 @@
 package com.petshop.gui;
 
+import com.petshop.util.Theme;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,34 +15,34 @@ public class Toast {
      * 显示成功提示
      */
     public static void showSuccess(Component parent, String message) {
-        showToast(parent, message, new Color(46, 204, 113), "✓");
+        showToast(parent, message, Theme.SUCCESS);
     }
     
     /**
      * 显示错误提示
      */
     public static void showError(Component parent, String message) {
-        showToast(parent, message, new Color(231, 76, 60), "✗");
+        showToast(parent, message, Theme.DANGER);
     }
     
     /**
      * 显示警告提示
      */
     public static void showWarning(Component parent, String message) {
-        showToast(parent, message, new Color(241, 196, 15), "!");
+        showToast(parent, message, Theme.WARNING);
     }
     
     /**
      * 显示信息提示
      */
     public static void showInfo(Component parent, String message) {
-        showToast(parent, message, new Color(52, 152, 219), "ℹ");
+        showToast(parent, message, Theme.PRIMARY);
     }
     
     /**
      * 显示自定义Toast
      */
-    private static void showToast(Component parent, String message, Color bgColor, String icon) {
+    private static void showToast(Component parent, String message, Color bgColor) {
         // 创建无边框窗口
         JWindow toastWindow = new JWindow(SwingUtilities.getWindowAncestor(parent));
         toastWindow.setAlwaysOnTop(true);
@@ -54,15 +55,9 @@ public class Toast {
             BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
         
-        // 图标标签
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("微软雅黑", Font.BOLD, 18));
-        iconLabel.setForeground(Color.WHITE);
-        contentPanel.add(iconLabel, BorderLayout.WEST);
-        
         // 消息标签
         JLabel messageLabel = new JLabel(message);
-        messageLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        messageLabel.setFont(Theme.FONT_BODY);
         messageLabel.setForeground(Color.WHITE);
         contentPanel.add(messageLabel, BorderLayout.CENTER);
         

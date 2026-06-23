@@ -1,5 +1,6 @@
 package com.petshop.gui;
 
+import com.petshop.util.Theme;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -26,7 +27,7 @@ public class LoginDialog extends JDialog {
     }
     
     private void initializeDialog() {
-        setSize(400, 300);
+        setSize(420, 340);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -43,12 +44,12 @@ public class LoginDialog extends JDialog {
     private void createComponents() {
         // 标题面板
         JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(new Color(51, 153, 255));
-        titlePanel.setPreferredSize(new Dimension(400, 80));
+        titlePanel.setBackground(Theme.PRIMARY);
+        titlePanel.setPreferredSize(new Dimension(420, 90));
         titlePanel.setLayout(new GridBagLayout());
         
         JLabel titleLabel = new JLabel("宠物商店管理系统");
-        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
+        titleLabel.setFont(Theme.FONT_TITLE_LARGE);
         titleLabel.setForeground(Color.WHITE);
         titlePanel.add(titleLabel);
         
@@ -56,22 +57,21 @@ public class LoginDialog extends JDialog {
         
         // 表单面板
         JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        formPanel.setBackground(Theme.BG_PRIMARY);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(32, 48, 32, 48));
         
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(12, 12, 12, 12);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         // 用户名标签和输入框
-        JLabel userLabel = new JLabel("用户名:");
-        userLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        JLabel userLabel = Theme.createBodyLabel("用户名:");
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0.3;
         formPanel.add(userLabel, gbc);
         
-        usernameField = new JTextField(15);
-        usernameField.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        usernameField = Theme.createTextField(16);
         // 不设置默认用户名，保持为空
         gbc.gridx = 1;
         gbc.gridy = 0;
@@ -79,15 +79,13 @@ public class LoginDialog extends JDialog {
         formPanel.add(usernameField, gbc);
         
         // 密码标签和输入框
-        JLabel passLabel = new JLabel("密  码:");
-        passLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        JLabel passLabel = Theme.createBodyLabel("密  码:");
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0.3;
         formPanel.add(passLabel, gbc);
         
-        passwordField = new JPasswordField(15);
-        passwordField.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        passwordField = Theme.createPasswordField(16);
         // 不设置默认密码，保持为空
         gbc.gridx = 1;
         gbc.gridy = 1;
@@ -107,16 +105,15 @@ public class LoginDialog extends JDialog {
         add(formPanel, BorderLayout.CENTER);
         
         // 按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 24, 16));
+        buttonPanel.setBackground(Theme.BG_PRIMARY);
         
-        JButton loginButton = new JButton("登录");
-        loginButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        loginButton.setPreferredSize(new Dimension(100, 35));
+        JButton loginButton = Theme.createPrimaryButton("登录");
+        loginButton.setPreferredSize(new Dimension(120, 40));
         loginButton.addActionListener(e -> performLogin());
         
-        JButton cancelButton = new JButton("取消");
-        cancelButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        cancelButton.setPreferredSize(new Dimension(100, 35));
+        JButton cancelButton = Theme.createSecondaryButton("取消");
+        cancelButton.setPreferredSize(new Dimension(120, 40));
         cancelButton.addActionListener(e -> System.exit(0));
         
         buttonPanel.add(loginButton);
@@ -134,10 +131,7 @@ public class LoginDialog extends JDialog {
         
         // 简单验证
         if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "用户名和密码不能为空！", 
-                "提示", 
-                JOptionPane.WARNING_MESSAGE);
+            com.petshop.util.DialogUtil.showWarning(this, "用户名和密码不能为空！");
             return;
         }
         
@@ -146,10 +140,7 @@ public class LoginDialog extends JDialog {
             loginSuccess = true;
             dispose();
         } else {
-            JOptionPane.showMessageDialog(this, 
-                "用户名或密码错误！", 
-                "登录失败", 
-                JOptionPane.ERROR_MESSAGE);
+            com.petshop.util.DialogUtil.showError(this, "登录失败", "用户名或密码错误！");
             passwordField.setText("");
             passwordField.requestFocus();
         }
