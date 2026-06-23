@@ -8,8 +8,10 @@ import com.petshop.dao.InventoryDao;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
+import java.util.Comparator;
 
 /**
  * 库存管理界面面板
@@ -20,6 +22,7 @@ public class InventoryManagementPanel extends JPanel {
     private InventoryDao inventoryDao;
     private JTable inventoryTable;
     private DefaultTableModel tableModel;
+    private TableRowSorter<DefaultTableModel> sorter; // 排序器
     
     public InventoryManagementPanel() {
         // 创建DAO实例
@@ -39,13 +42,30 @@ public class InventoryManagementPanel extends JPanel {
     }
     
     private void createComponents() {
-        // 创建标题面板
+        // 创建标题面板（包含标题和图标按钮）
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
+        
         JLabel titleLabel = new JLabel("库存管理", SwingConstants.CENTER);
         titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
         titleLabel.setForeground(new Color(51, 51, 51));
         titlePanel.add(titleLabel, BorderLayout.CENTER);
+        
+        // 创建右上角图标按钮面板
+        JPanel iconButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        iconButtonPanel.setOpaque(false);
+        
+        // 检查预警按钮
+        JButton checkWarningButton = createIconButton("⚠️", "检查预警", new Color(255, 152, 0));
+        checkWarningButton.addActionListener(e -> checkWarning());
+        iconButtonPanel.add(checkWarningButton);
+        
+        // 库存统计按钮
+        JButton statisticsButton = createIconButton("📊", "库存统计", new Color(33, 150, 243));
+        statisticsButton.addActionListener(e -> showStatistics());
+        iconButtonPanel.add(statisticsButton);
+        
+        titlePanel.add(iconButtonPanel, BorderLayout.EAST);
         add(titlePanel, BorderLayout.NORTH);
         
         // 创建搜索和筛选面板
@@ -54,8 +74,7 @@ public class InventoryManagementPanel extends JPanel {
         // 创建表格
         createInventoryTable();
         
-        // 创建按钮面板
-        createButtonPanel();
+        // 移除底部按钮面板，不再需要
     }
     
     /**
@@ -134,8 +153,81 @@ public class InventoryManagementPanel extends JPanel {
         // 设置状态列的自定义渲染器
         inventoryTable.getColumnModel().getColumn(5).setCellRenderer(new StatusCellRenderer());
         
+        // 创建行排序器
+        sorter = new TableRowSorter<>(tableModel);
+        
+        // 设置每列的排序规则
+        sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER); // 宠物ID - 字符串排序
+        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 宠物名称 - 字符串排序
+        sorter.setComparator(2, String.CASE_INSENSITIVE_ORDER); // 种类 - 字符串排序
+        sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 库存数量 - 整数排序
+        sorter.setComparator(4, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 预警阈值 - 整数排序
+        sorter.setComparator(5, String.CASE_INSENSITIVE_ORDER); // 状态 - 字符串排序
+        
+        inventoryTable.setRowSorter(sorter);
+        
         JScrollPane scrollPane = new JScrollPane(inventoryTable);
         add(scrollPane, BorderLayout.CENTER);
+        
+        // 添加右键菜单
+        setupContextMenu();
+    }
+    
+    /**
+     * 设置右键菜单
+     */
+    private void setupContextMenu() {
+        JPopupMenu popupMenu = new JPopupMenu();
+        
+        JMenuItem updateItem = new JMenuItem("更新库存");
+        updateItem.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        updateItem.addActionListener(e -> updateInventory());
+        popupMenu.add(updateItem);
+        
+        JMenuItem warningItem = new JMenuItem("设置预警");
+        warningItem.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        warningItem.addActionListener(e -> setWarning());
+        popupMenu.add(warningItem);
+        
+        inventoryTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showPopup(e);
+                }
+            }
+            
+            @Override
+            public void mouseReleased(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showPopup(e);
+                }
+            }
+            
+            private void showPopup(java.awt.event.MouseEvent e) {
+                int row = inventoryTable.rowAtPoint(e.getPoint());
+                if (row >= 0 && row < inventoryTable.getRowCount()) {
+                    inventoryTable.setRowSelectionInterval(row, row);
+                    popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
+    }
+    
+    /**
+     * 创建图标按钮
+     */
+    private JButton createIconButton(String icon, String tooltip, Color bgColor) {
+        JButton button = new JButton(icon);
+        button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setToolTipText(tooltip);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(40, 40));
+        return button;
     }
     
     /**
@@ -170,35 +262,7 @@ public class InventoryManagementPanel extends JPanel {
         }
     }
     
-    private void createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(10, 5, 5, 5)
-        ));
-        
-        JButton updateButton = new JButton("更新库存");
-        JButton warningButton = new JButton("设置预警");
-        JButton checkWarningButton = new JButton("检查预警");
-        JButton statisticsButton = new JButton("库存统计");
-        
-        // 设置主操作按钮样式
-        updateButton.setBackground(new Color(51, 153, 255));
-        updateButton.setForeground(Color.WHITE);
-        updateButton.setFocusPainted(false);
-        
-        updateButton.addActionListener(e -> updateInventory());
-        warningButton.addActionListener(e -> setWarning());
-        checkWarningButton.addActionListener(e -> checkWarning());
-        statisticsButton.addActionListener(e -> showStatistics());
-        
-        buttonPanel.add(updateButton);
-        buttonPanel.add(warningButton);
-        buttonPanel.add(checkWarningButton);
-        buttonPanel.add(statisticsButton);
-        
-        add(buttonPanel, BorderLayout.SOUTH);
-    }
+
     
     /**
      * 执行搜索和筛选
@@ -293,7 +357,14 @@ public class InventoryManagementPanel extends JPanel {
         }
         
         String petId = (String) tableModel.getValueAt(selectedRow, 0);
-        int currentQuantity = (int) tableModel.getValueAt(selectedRow, 2);
+        // 安全地获取当前库存数量
+        Object quantityObj = tableModel.getValueAt(selectedRow, 3); // 库存数量在第4列（索引3）
+        int currentQuantity;
+        if (quantityObj instanceof Number) {
+            currentQuantity = ((Number) quantityObj).intValue();
+        } else {
+            currentQuantity = Integer.parseInt(quantityObj.toString());
+        }
         
         // 创建更新库存对话框
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "更新库存", true);
@@ -362,7 +433,14 @@ public class InventoryManagementPanel extends JPanel {
         }
         
         String petId = (String) tableModel.getValueAt(selectedRow, 0);
-        int currentThreshold = (int) tableModel.getValueAt(selectedRow, 3);
+        // 安全地获取当前预警阈值
+        Object thresholdObj = tableModel.getValueAt(selectedRow, 4); // 预警阈值在第5列（索引4）
+        int currentThreshold;
+        if (thresholdObj instanceof Number) {
+            currentThreshold = ((Number) thresholdObj).intValue();
+        } else {
+            currentThreshold = Integer.parseInt(thresholdObj.toString());
+        }
         
         // 创建设置预警对话框
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "设置库存预警", true);

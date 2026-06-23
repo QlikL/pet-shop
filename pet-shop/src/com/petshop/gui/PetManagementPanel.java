@@ -42,20 +42,36 @@ public class PetManagementPanel extends JPanel {
     }
     
     private void createComponents() {
-        // 创建标题面板
+        // 创建标题面板（包含标题和图标按钮）
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
+        
         JLabel titleLabel = new JLabel("宠物管理", SwingConstants.CENTER);
         titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
         titleLabel.setForeground(new Color(51, 51, 51));
         titlePanel.add(titleLabel, BorderLayout.CENTER);
+        
+        // 创建右上角图标按钮面板
+        JPanel iconButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        iconButtonPanel.setOpaque(false);
+        
+        // 添加宠物按钮（+号）
+        JButton addButton = createIconButton("", "添加宠物", new Color(76, 175, 80));
+        addButton.addActionListener(e -> addPet());
+        iconButtonPanel.add(addButton);
+        
+        // 刷新列表按钮（刷新符号）
+        JButton refreshButton = createIconButton("🔄", "刷新列表", new Color(96, 125, 139));
+        refreshButton.addActionListener(e -> loadPetData());
+        iconButtonPanel.add(refreshButton);
+        
+        titlePanel.add(iconButtonPanel, BorderLayout.EAST);
         add(titlePanel, BorderLayout.NORTH);
         
         // 创建表格
         createPetTable();
         
-        // 创建按钮面板
-        createButtonPanel();
+        // 移除底部按钮面板，不再需要
     }
     
     private void createPetTable() {
@@ -112,51 +128,69 @@ public class PetManagementPanel extends JPanel {
             BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
         add(scrollPane, BorderLayout.CENTER);
-    }
-    
-    private void createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        buttonPanel.setBackground(new Color(245, 247, 250));
-        buttonPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(15, 5, 5, 5)
-        ));
         
-        JButton addButton = createStyledButton("添加宠物", new Color(76, 175, 80));
-        JButton deleteButton = createStyledButton("删除宠物", new Color(244, 67, 54));
-        JButton updateButton = createStyledButton("修改宠物", new Color(33, 150, 243));
-        JButton queryButton = createStyledButton("查询宠物", new Color(156, 39, 176));
-        JButton refreshButton = createStyledButton("刷新列表", new Color(96, 125, 139));
-        
-        addButton.addActionListener(e -> addPet());
-        deleteButton.addActionListener(e -> deletePet());
-        updateButton.addActionListener(e -> updatePet());
-        queryButton.addActionListener(e -> queryPet());
-        refreshButton.addActionListener(e -> loadPetData());
-        
-        buttonPanel.add(addButton);
-        buttonPanel.add(deleteButton);
-        buttonPanel.add(updateButton);
-        buttonPanel.add(queryButton);
-        buttonPanel.add(refreshButton);
-        
-        add(buttonPanel, BorderLayout.SOUTH);
+        // 添加右键菜单
+        setupContextMenu();
     }
     
     /**
-     * 创建样式化按钮
+     * 设置右键菜单
      */
-    private JButton createStyledButton(String text, Color bgColor) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+    private void setupContextMenu() {
+        JPopupMenu popupMenu = new JPopupMenu();
+        
+        JMenuItem updateItem = new JMenuItem("修改");
+        updateItem.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        updateItem.addActionListener(e -> updatePet());
+        popupMenu.add(updateItem);
+        
+        JMenuItem deleteItem = new JMenuItem("删除");
+        deleteItem.setFont(new Font("微软雅黑", Font.PLAIN, 13));
+        deleteItem.addActionListener(e -> deletePet());
+        popupMenu.add(deleteItem);
+        
+        petTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showPopup(e);
+                }
+            }
+            
+            @Override
+            public void mouseReleased(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showPopup(e);
+                }
+            }
+            
+            private void showPopup(java.awt.event.MouseEvent e) {
+                int row = petTable.rowAtPoint(e.getPoint());
+                if (row >= 0 && row < petTable.getRowCount()) {
+                    petTable.setRowSelectionInterval(row, row);
+                    popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
+    }
+    
+    /**
+     * 创建图标按钮
+     */
+    private JButton createIconButton(String icon, String tooltip, Color bgColor) {
+        JButton button = new JButton(icon);
+        button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
+        button.setToolTipText(tooltip);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(120, 40));
+        button.setPreferredSize(new Dimension(40, 40));
         return button;
     }
+    
+
     
     private void loadPetData() {
         tableModel.setRowCount(0); // 清空表格

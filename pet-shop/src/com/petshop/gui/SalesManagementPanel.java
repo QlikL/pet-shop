@@ -8,8 +8,10 @@ import com.petshop.dao.SalesRecordDao;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
+import java.util.Comparator;
 
 /**
  * 销售管理界面面板
@@ -18,6 +20,10 @@ public class SalesManagementPanel extends JPanel {
     private SalesService salesService;
     private JTable salesTable;
     private DefaultTableModel tableModel;
+    private TableRowSorter<DefaultTableModel> sorter; // 排序器
+    private JPanel summaryPanel; // 汇总面板
+    private JLabel totalQuantityLabel; // 总数量标签
+    private JLabel totalAmountLabel; // 总金额标签
     
     public SalesManagementPanel() {
         // 创建DAO实例
@@ -38,24 +44,45 @@ public class SalesManagementPanel extends JPanel {
     }
     
     private void createComponents() {
-        // 创建标题面板
+        // 创建标题面板（包含标题和图标按钮）
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
+        
         JLabel titleLabel = new JLabel("销售管理", SwingConstants.CENTER);
         titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
         titleLabel.setForeground(new Color(51, 51, 51));
         titlePanel.add(titleLabel, BorderLayout.CENTER);
+        
+        // 创建右上角图标按钮面板
+        JPanel iconButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        iconButtonPanel.setOpaque(false);
+        
+        // 添加销售记录按钮（+号）
+        JButton addButton = createIconButton("", "添加销售记录", new Color(76, 175, 80));
+        addButton.addActionListener(e -> addSalesRecord());
+        iconButtonPanel.add(addButton);
+        
+        // 查询销售记录按钮（放大镜）
+        JButton queryButton = createIconButton("🔍", "查询销售记录", new Color(33, 150, 243));
+        queryButton.addActionListener(e -> querySalesRecord());
+        iconButtonPanel.add(queryButton);
+        
+        // 刷新列表按钮（刷新符号）
+        JButton refreshButton = createIconButton("🔄", "刷新列表", new Color(96, 125, 139));
+        refreshButton.addActionListener(e -> loadSalesData());
+        iconButtonPanel.add(refreshButton);
+        
+        titlePanel.add(iconButtonPanel, BorderLayout.EAST);
         add(titlePanel, BorderLayout.NORTH);
         
         // 创建表格
         createSalesTable();
         
-        // 创建按钮面板
-        createButtonPanel();
+        // 移除底部按钮面板，不再需要
     }
     
     private void createSalesTable() {
-        String[] columnNames = {"记录ID", "宠物ID", "宠物名称", "销售数量", "销售时间", "销售金额"};
+        String[] columnNames = {"记录ID", "宠物ID", "宠物品种", "销售数量", "销售时间", "销售金额"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -75,66 +102,109 @@ public class SalesManagementPanel extends JPanel {
         salesTable.setShowGrid(true);
         salesTable.setIntercellSpacing(new Dimension(1, 1));
         
+        // 创建行排序器
+        sorter = new TableRowSorter<>(tableModel);
+        
+        // 设置每列的排序规则
+        sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER); // 记录ID - 字符串排序
+        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 宠物ID - 字符串排序
+        sorter.setComparator(2, String.CASE_INSENSITIVE_ORDER); // 宠物品种 - 字符串排序
+        sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 销售数量 - 整数排序
+        sorter.setComparator(4, (Comparator<Object>) (o1, o2) -> {
+            if (o1 instanceof java.time.LocalDateTime && o2 instanceof java.time.LocalDateTime) {
+                return ((java.time.LocalDateTime)o1).compareTo((java.time.LocalDateTime)o2);
+            }
+            return String.CASE_INSENSITIVE_ORDER.compare(o1.toString(), o2.toString());
+        }); // 销售时间 - LocalDateTime排序
+        sorter.setComparator(5, (Comparator<Object>) (o1, o2) -> {
+            try {
+                // 尝试将值转换为Double
+                double val1 = (o1 instanceof Number) ? ((Number) o1).doubleValue() : Double.parseDouble(o1.toString());
+                double val2 = (o2 instanceof Number) ? ((Number) o2).doubleValue() : Double.parseDouble(o2.toString());
+                return Double.compare(val1, val2);
+            } catch (NumberFormatException e) {
+                // 如果无法解析（如空字符串），按字符串比较
+                return o1.toString().compareTo(o2.toString());
+            }
+        }); // 销售金额 - 双精度排序
+        
+        salesTable.setRowSorter(sorter);
+        
         JScrollPane scrollPane = new JScrollPane(salesTable);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(220, 220, 220)),
             BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
         add(scrollPane, BorderLayout.CENTER);
+        
+        // 创建底部汇总面板
+        createSummaryPanel();
     }
     
-    private void createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        buttonPanel.setBackground(new Color(245, 247, 250));
-        buttonPanel.setBorder(BorderFactory.createCompoundBorder(
+
+    
+    /**
+     * 创建底部汇总面板
+     */
+    private void createSummaryPanel() {
+        summaryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        summaryPanel.setBackground(new Color(248, 249, 250));
+        summaryPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(15, 5, 5, 5)
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
         
-        JButton addButton = new JButton("添加销售记录");
-        JButton queryButton = new JButton("查询销售记录");
-        JButton timeQueryButton = new JButton("按时间范围查询");
-        JButton statisticsButton = new JButton("销售统计");
-        JButton refreshButton = new JButton("刷新列表");
+        Font labelFont = new Font("微软雅黑", Font.PLAIN, 14);
+        Font valueFont = new Font("微软雅黑", Font.BOLD, 15);
         
-        // 设置按钮样式
-        styleButton(addButton, new Color(76, 175, 80));
-        styleButton(queryButton, new Color(33, 150, 243));
-        styleButton(timeQueryButton, new Color(156, 39, 176));
-        styleButton(statisticsButton, new Color(255, 152, 0));
-        styleButton(refreshButton, new Color(96, 125, 139));
+        JLabel totalQtyLabel = new JLabel("总销售数量:");
+        totalQtyLabel.setFont(labelFont);
+        totalQtyLabel.setForeground(new Color(100, 100, 100));
         
-        addButton.addActionListener(e -> addSalesRecord());
-        queryButton.addActionListener(e -> querySalesRecord());
-        timeQueryButton.addActionListener(e -> queryByTimeRange());
-        statisticsButton.addActionListener(e -> showStatistics());
-        refreshButton.addActionListener(e -> loadSalesData());
+        totalQuantityLabel = new JLabel("0");
+        totalQuantityLabel.setFont(valueFont);
+        totalQuantityLabel.setForeground(new Color(76, 175, 80));
         
-        buttonPanel.add(addButton);
-        buttonPanel.add(queryButton);
-        buttonPanel.add(timeQueryButton);
-        buttonPanel.add(statisticsButton);
-        buttonPanel.add(refreshButton);
+        JLabel totalAmtLabel = new JLabel("总销售金额:");
+        totalAmtLabel.setFont(labelFont);
+        totalAmtLabel.setForeground(new Color(100, 100, 100));
         
-        add(buttonPanel, BorderLayout.SOUTH);
+        totalAmountLabel = new JLabel("¥0.00");
+        totalAmountLabel.setFont(valueFont);
+        totalAmountLabel.setForeground(new Color(33, 150, 243));
+        
+        summaryPanel.add(totalQtyLabel);
+        summaryPanel.add(totalQuantityLabel);
+        summaryPanel.add(Box.createHorizontalStrut(20));
+        summaryPanel.add(totalAmtLabel);
+        summaryPanel.add(totalAmountLabel);
+        
+        add(summaryPanel, BorderLayout.SOUTH);
     }
     
     /**
-     * 设置按钮样式
+     * 创建图标按钮
      */
-    private void styleButton(JButton button, Color bgColor) {
-        button.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+    private JButton createIconButton(String icon, String tooltip, Color bgColor) {
+        JButton button = new JButton(icon);
+        button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
+        button.setToolTipText(tooltip);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(130, 40));
+        button.setPreferredSize(new Dimension(40, 40));
+        return button;
     }
     
     private void loadSalesData() {
         tableModel.setRowCount(0); // 清空表格
         List<SalesRecord> salesRecords = salesService.getAllSales();
+        
+        int totalQuantity = 0;
+        double totalAmount = 0.0;
+        
         for (SalesRecord record : salesRecords) {
             Object[] row = {
                 record.getRecordId(),
@@ -145,7 +215,15 @@ public class SalesManagementPanel extends JPanel {
                 record.getTotalPrice()
             };
             tableModel.addRow(row);
+            
+            // 累加汇总数据
+            totalQuantity += record.getQuantity();
+            totalAmount += record.getTotalPrice();
         }
+        
+        // 更新汇总面板（不受排序影响，始终显示）
+        totalQuantityLabel.setText(String.valueOf(totalQuantity));
+        totalAmountLabel.setText(String.format("¥%.2f", totalAmount));
     }
     
     private void addSalesRecord() {
