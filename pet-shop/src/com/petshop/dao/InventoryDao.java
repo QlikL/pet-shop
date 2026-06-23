@@ -6,7 +6,7 @@ import java.util.*;
 
 public class InventoryDao {
     private static final String DATA_FILE = "data/inventory.dat";
-    private Map<String, Inventory> inventoryMap;
+    private Map<String, Inventory> inventoryMap; // key: species_breed 组合键
 
     public InventoryDao() {
         this.inventoryMap = new HashMap<>();
@@ -34,11 +34,25 @@ public class InventoryDao {
     }
 
     public void save(Inventory inventory) {
-        inventoryMap.put(inventory.getPetId(), inventory);
+        String key = generateKey(inventory.getSpecies(), inventory.getBreed());
+        inventoryMap.put(key, inventory);
         saveInventory();
     }
 
-    public Inventory findByPetId(String petId) { return inventoryMap.get(petId); }
+    /**
+     * 根据种类和品种查找库存
+     */
+    public Inventory findBySpeciesAndBreed(String species, String breed) {
+        String key = generateKey(species, breed);
+        return inventoryMap.get(key);
+    }
+
+    /**
+     * 生成库存键值：species_breed
+     */
+    private String generateKey(String species, String breed) {
+        return species + "_" + breed;
+    }
 
     public List<Inventory> findAll() { return new ArrayList<>(inventoryMap.values()); }
 

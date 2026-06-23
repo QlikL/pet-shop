@@ -71,19 +71,27 @@ public class MainFrame extends JFrame {
         topBar.setPreferredSize(new Dimension(0, 60));
         topBar.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
         
-        // 左侧：当前模块名称
+        // 左侧：当前模块名称（垂直居中）
         moduleLabel = new JLabel("首页");
         moduleLabel.setFont(new Font("微软雅黑", Font.BOLD, 18));
         moduleLabel.setForeground(Color.WHITE);
         topBar.add(moduleLabel, BorderLayout.WEST);
         
-        // 右侧：用户信息和退出按钮
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        // 右侧：用户信息和退出按钮（垂直居中）
+        JPanel rightPanel = new JPanel();
+        rightPanel.setLayout(new GridBagLayout());
         rightPanel.setOpaque(false);
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(0, 0, 0, 15); // 右边距15像素
+        gbc.anchor = GridBagConstraints.CENTER; // 居中对齐
         
         userLabel = new JLabel(currentUser);
         userLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
         userLabel.setForeground(Color.WHITE);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        rightPanel.add(userLabel, gbc);
         
         JButton logoutButton = new JButton("退出登录");
         logoutButton.setFont(new Font("微软雅黑", Font.PLAIN, 13));
@@ -94,8 +102,11 @@ public class MainFrame extends JFrame {
         logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         logoutButton.addActionListener(e -> logout());
         
-        rightPanel.add(userLabel);
-        rightPanel.add(logoutButton);
+        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        rightPanel.add(logoutButton, gbc);
+        
         topBar.add(rightPanel, BorderLayout.EAST);
         
         add(topBar, BorderLayout.NORTH);

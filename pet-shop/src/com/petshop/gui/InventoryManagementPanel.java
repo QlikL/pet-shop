@@ -135,7 +135,7 @@ public class InventoryManagementPanel extends JPanel {
     }
     
     private void createInventoryTable() {
-        String[] columnNames = {"宠物ID", "宠物名称", "种类", "库存数量", "预警阈值", "状态"};
+        String[] columnNames = {"种类", "品种", "库存数量", "预警阈值", "状态"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -151,18 +151,17 @@ public class InventoryManagementPanel extends JPanel {
         inventoryTable.getTableHeader().setFont(new Font("微软雅黑", Font.BOLD, 13));
         
         // 设置状态列的自定义渲染器
-        inventoryTable.getColumnModel().getColumn(5).setCellRenderer(new StatusCellRenderer());
+        inventoryTable.getColumnModel().getColumn(4).setCellRenderer(new StatusCellRenderer());
         
         // 创建行排序器
         sorter = new TableRowSorter<>(tableModel);
         
         // 设置每列的排序规则
-        sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER); // 宠物ID - 字符串排序
-        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 宠物名称 - 字符串排序
-        sorter.setComparator(2, String.CASE_INSENSITIVE_ORDER); // 种类 - 字符串排序
-        sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 库存数量 - 整数排序
-        sorter.setComparator(4, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 预警阈值 - 整数排序
-        sorter.setComparator(5, String.CASE_INSENSITIVE_ORDER); // 状态 - 字符串排序
+        sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER); // 种类 - 字符串排序
+        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 品种 - 字符串排序
+        sorter.setComparator(2, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 库存数量 - 整数排序
+        sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 预警阈值 - 整数排序
+        sorter.setComparator(4, String.CASE_INSENSITIVE_ORDER); // 状态 - 字符串排序
         
         inventoryTable.setRowSorter(sorter);
         
@@ -179,11 +178,8 @@ public class InventoryManagementPanel extends JPanel {
     private void setupContextMenu() {
         JPopupMenu popupMenu = new JPopupMenu();
         
-        JMenuItem updateItem = new JMenuItem("更新库存");
-        updateItem.setFont(new Font("微软雅黑", Font.PLAIN, 13));
-        updateItem.addActionListener(e -> updateInventory());
-        popupMenu.add(updateItem);
-        
+        // 移除“更新库存”菜单项，因为库存数量是自动统计的
+        // 只保留“设置预警”菜单项
         JMenuItem warningItem = new JMenuItem("设置预警");
         warningItem.setFont(new Font("微软雅黑", Font.PLAIN, 13));
         warningItem.addActionListener(e -> setWarning());
@@ -272,28 +268,19 @@ public class InventoryManagementPanel extends JPanel {
         List<Inventory> inventories = inventoryService.getAllInventory();
         
         for (Inventory inventory : inventories) {
-            String petName = "未知";
-            String petType = "-";
-            com.petshop.model.Pet pet = petDao.findById(inventory.getPetId());
-            if (pet != null) {
-                petName = pet.getName();
-                petType = pet.getSpecies();
-            }
-            
             // 应用筛选条件
             boolean matchesKeyword = keyword.isEmpty() || 
-                                     inventory.getPetId().contains(keyword) ||
-                                     petName.contains(keyword);
-            boolean matchesType = "全部".equals(type) || type.equals(petType);
+                                     inventory.getSpecies().contains(keyword) ||
+                                     inventory.getBreed().contains(keyword);
+            boolean matchesType = "全部".equals(type) || type.equals(inventory.getSpecies());
             
             String currentStatus = getStatus(inventory.getQuantity(), inventory.getWarningThreshold());
             boolean matchesStatus = "全部".equals(status) || currentStatus.contains(status);
             
             if (matchesKeyword && matchesType && matchesStatus) {
                 Object[] row = {
-                    inventory.getPetId(),
-                    petName,
-                    petType,
+                    inventory.getSpecies(),
+                    inventory.getBreed(),
                     inventory.getQuantity(),
                     inventory.getWarningThreshold(),
                     currentStatus
@@ -313,21 +300,12 @@ public class InventoryManagementPanel extends JPanel {
         tableModel.setRowCount(0); // 清空表格
         List<Inventory> inventories = inventoryService.getAllInventory();
         for (Inventory inventory : inventories) {
-            String petName = "未知";
-            String petType = "-";
-            com.petshop.model.Pet pet = petDao.findById(inventory.getPetId());
-            if (pet != null) {
-                petName = pet.getName();
-                petType = pet.getSpecies();
-            }
-            
             // 计算状态
             String status = getStatus(inventory.getQuantity(), inventory.getWarningThreshold());
             
             Object[] row = {
-                inventory.getPetId(),
-                petName,
-                petType,
+                inventory.getSpecies(),
+                inventory.getBreed(),
                 inventory.getQuantity(),
                 inventory.getWarningThreshold(),
                 status
@@ -349,81 +327,7 @@ public class InventoryManagementPanel extends JPanel {
         }
     }
     
-    private void updateInventory() {
-        int selectedRow = inventoryTable.getSelectedRow();
-        if (selectedRow == -1) {
-            Toast.showWarning(this, "请先选择要更新的库存");
-            return;
-        }
-        
-        String petId = (String) tableModel.getValueAt(selectedRow, 0);
-        // 安全地获取当前库存数量
-        Object quantityObj = tableModel.getValueAt(selectedRow, 3); // 库存数量在第4列（索引3）
-        int currentQuantity;
-        if (quantityObj instanceof Number) {
-            currentQuantity = ((Number) quantityObj).intValue();
-        } else {
-            currentQuantity = Integer.parseInt(quantityObj.toString());
-        }
-        
-        // 创建更新库存对话框
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "更新库存", true);
-        dialog.setSize(350, 200);
-        dialog.setLocationRelativeTo(this);
-        
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        JLabel currentLabel = new JLabel("当前库存: " + currentQuantity);
-        JTextField amountField = new JTextField(20);
-        
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(currentLabel, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("数量变化 (正数增加，负数减少):"), gbc);
-        gbc.gridx = 1;
-        panel.add(amountField, gbc);
-        
-        // 创建按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton saveButton = new JButton("保存");
-        JButton cancelButton = new JButton("取消");
-        
-        saveButton.addActionListener(e -> {
-            try {
-                String amountStr = amountField.getText().trim();
-                if (amountStr.isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "请输入数量变化", "错误", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                
-                int amount = Integer.parseInt(amountStr);
-                inventoryService.updateQuantity(petId, amount);
-                loadInventoryData();
-                dialog.dispose();
-                Toast.showSuccess(this, "库存更新成功");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dialog, "请输入有效的数字", "错误", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "更新失败：" + ex.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        
-        cancelButton.addActionListener(e -> dialog.dispose());
-        
-        buttonPanel.add(saveButton);
-        buttonPanel.add(cancelButton);
-        
-        gbc.gridx = 0; gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        panel.add(buttonPanel, gbc);
-        
-        dialog.add(panel);
-        dialog.setVisible(true);
-    }
+    // updateInventory方法已移除，因为库存数量是自动统计的，不可手动修改
     
     private void setWarning() {
         int selectedRow = inventoryTable.getSelectedRow();
@@ -432,9 +336,10 @@ public class InventoryManagementPanel extends JPanel {
             return;
         }
         
-        String petId = (String) tableModel.getValueAt(selectedRow, 0);
+        String species = (String) tableModel.getValueAt(selectedRow, 0);
+        String breed = (String) tableModel.getValueAt(selectedRow, 1);
         // 安全地获取当前预警阈值
-        Object thresholdObj = tableModel.getValueAt(selectedRow, 4); // 预警阈值在第5列（索引4）
+        Object thresholdObj = tableModel.getValueAt(selectedRow, 3); // 预警阈值在第4列（索引3）
         int currentThreshold;
         if (thresholdObj instanceof Number) {
             currentThreshold = ((Number) thresholdObj).intValue();
@@ -477,7 +382,7 @@ public class InventoryManagementPanel extends JPanel {
                 }
                 
                 int threshold = Integer.parseInt(thresholdStr);
-                inventoryService.setWarningThreshold(petId, threshold);
+                inventoryService.setWarningThreshold(species, breed, threshold); // 原来是petId
                 loadInventoryData();
                 dialog.dispose();
                 Toast.showSuccess(this, "预警阈值设置成功");
@@ -514,7 +419,7 @@ public class InventoryManagementPanel extends JPanel {
             JPanel panel = new JPanel(new BorderLayout());
             
             // 创建表格
-            String[] columnNames = {"宠物ID", "宠物名称", "当前库存", "预警阈值"};
+            String[] columnNames = {"种类", "品种", "当前库存", "预警阈值"};
             DefaultTableModel warningTableModel = new DefaultTableModel(columnNames, 0) {
                 @Override
                 public boolean isCellEditable(int row, int column) {
@@ -526,14 +431,9 @@ public class InventoryManagementPanel extends JPanel {
             warningTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             
             for (Inventory inventory : warnings) {
-                String petName = "未知";
-                com.petshop.model.Pet pet = petDao.findById(inventory.getPetId());
-                if (pet != null) {
-                    petName = pet.getName();
-                }
                 Object[] row = {
-                    inventory.getPetId(),
-                    petName,
+                    inventory.getSpecies(),
+                    inventory.getBreed(),
                     inventory.getQuantity(),
                     inventory.getWarningThreshold()
                 };

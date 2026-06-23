@@ -51,17 +51,17 @@ public class PetManagementPanel extends JPanel {
         titleLabel.setForeground(new Color(51, 51, 51));
         titlePanel.add(titleLabel, BorderLayout.CENTER);
         
-        // 创建右上角图标按钮面板
+        // 创建右上角按钮面板
         JPanel iconButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         iconButtonPanel.setOpaque(false);
         
-        // 添加宠物按钮（+号）
-        JButton addButton = createIconButton("", "添加宠物", new Color(76, 175, 80));
+        // 添加宠物按钮
+        JButton addButton = createTextButton("添加", "添加宠物", Color.WHITE);
         addButton.addActionListener(e -> addPet());
         iconButtonPanel.add(addButton);
         
-        // 刷新列表按钮（刷新符号）
-        JButton refreshButton = createIconButton("🔄", "刷新列表", new Color(96, 125, 139));
+        // 刷新列表按钮
+        JButton refreshButton = createTextButton("刷新", "刷新列表", Color.WHITE);
         refreshButton.addActionListener(e -> loadPetData());
         iconButtonPanel.add(refreshButton);
         
@@ -75,7 +75,7 @@ public class PetManagementPanel extends JPanel {
     }
     
     private void createPetTable() {
-        String[] columnNames = {"宠物ID", "名称", "种类", "年龄", "价格", "状态"};
+        String[] columnNames = {"宠物ID", "品种", "种类", "年龄", "价格", "状态"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -100,7 +100,7 @@ public class PetManagementPanel extends JPanel {
         
         // 设置每列的排序规则
         sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER); // 宠物ID - 字符串排序
-        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 名称 - 字符串排序
+        sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 品种 - 字符串排序
         sorter.setComparator(2, String.CASE_INSENSITIVE_ORDER); // 种类 - 字符串排序
         sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 年龄 - 整数排序
         sorter.setComparator(4, (Comparator<Object>) (o1, o2) -> Double.compare((Double)o1, (Double)o2)); // 价格 - 双精度排序
@@ -175,18 +175,18 @@ public class PetManagementPanel extends JPanel {
     }
     
     /**
-     * 创建图标按钮
+     * 创建文字按钮
      */
-    private JButton createIconButton(String icon, String tooltip, Color bgColor) {
-        JButton button = new JButton(icon);
-        button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+    private JButton createTextButton(String text, String tooltip, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("微软雅黑", Font.PLAIN, 14));
         button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
+        button.setForeground(Color.BLACK);
         button.setToolTipText(tooltip);
         button.setFocusPainted(false);
-        button.setBorderPainted(false);
+        button.setBorderPainted(true);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(40, 40));
+        button.setPreferredSize(new Dimension(70, 35));
         return button;
     }
     
@@ -208,7 +208,7 @@ public class PetManagementPanel extends JPanel {
         for (Pet pet : allPets) {
             Object[] row = {
                 pet.getId(),
-                pet.getName(),
+                pet.getBreed(),
                 pet.getSpecies(),
                 pet.getAge(),
                 pet.getPrice(),
@@ -231,7 +231,7 @@ public class PetManagementPanel extends JPanel {
         
         // 创建输入字段
         JTextField idField = new JTextField(20);
-        JTextField nameField = new JTextField(20);
+        JTextField breedField = new JTextField(20); // 原来是nameField
         JComboBox<String> speciesCombo = new JComboBox<>(new String[]{"狗", "猫", "其他"});
         JTextField ageField = new JTextField(20);
         JTextField priceField = new JTextField(20);
@@ -244,9 +244,9 @@ public class PetManagementPanel extends JPanel {
         panel.add(idField, gbc);
         
         gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("名称:"), gbc);
+        panel.add(new JLabel("品种:"), gbc);
         gbc.gridx = 1;
-        panel.add(nameField, gbc);
+        panel.add(breedField, gbc);
         
         gbc.gridx = 0; gbc.gridy = 2;
         panel.add(new JLabel("种类:"), gbc);
@@ -276,13 +276,13 @@ public class PetManagementPanel extends JPanel {
         saveButton.addActionListener(e -> {
             try {
                 String id = idField.getText().trim();
-                String name = nameField.getText().trim();
+                String breed = breedField.getText().trim(); // 原来是name
                 String species = (String) speciesCombo.getSelectedItem();
                 String ageStr = ageField.getText().trim();
                 String priceStr = priceField.getText().trim();
                 String status = (String) statusCombo.getSelectedItem();
                 
-                if (id.isEmpty() || name.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty()) {
+                if (id.isEmpty() || breed.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty()) {
                     JOptionPane.showMessageDialog(dialog, "请填写所有必填字段", "错误", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -290,7 +290,7 @@ public class PetManagementPanel extends JPanel {
                 int age = Integer.parseInt(ageStr);
                 double price = Double.parseDouble(priceStr);
                 
-                petService.addPet(id, name, species, age, price, status);
+                petService.addPet(id, breed, species, age, price, status); // 原来是name
                 loadPetData();
                 dialog.dispose();
                 JOptionPane.showMessageDialog(this, "添加成功", "提示", JOptionPane.INFORMATION_MESSAGE);
@@ -322,16 +322,16 @@ public class PetManagementPanel extends JPanel {
         }
         
         String petId = (String) tableModel.getValueAt(selectedRow, 0);
-        String petName = (String) tableModel.getValueAt(selectedRow, 1);
+        String petBreed = (String) tableModel.getValueAt(selectedRow, 1); // 原来是petName
         int confirm = JOptionPane.showConfirmDialog(this, 
-            "确定要删除宠物 " + petName + " (ID: " + petId + ") 吗？\n删除后无法恢复！", 
+            "确定要删除宠物 " + petBreed + " (ID: " + petId + ") 吗？\n删除后无法恢复！", 
             "确认删除", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 petService.deletePet(petId);
                 loadPetData();
-                JOptionPane.showMessageDialog(this, "宠物 " + petName + " 删除成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "宠物 " + petBreed + " 删除成功", "提示", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
                 String errorMsg = "删除失败：";
                 if (e.getMessage().contains("not found")) {
@@ -354,7 +354,7 @@ public class PetManagementPanel extends JPanel {
         }
         
         String petId = (String) tableModel.getValueAt(selectedRow, 0);
-        String currentName = (String) tableModel.getValueAt(selectedRow, 1);
+        String currentBreed = (String) tableModel.getValueAt(selectedRow, 1); // 原来是currentName
         String currentSpecies = (String) tableModel.getValueAt(selectedRow, 2);
         int currentAge = (int) tableModel.getValueAt(selectedRow, 3);
         double currentPrice = (double) tableModel.getValueAt(selectedRow, 4);
@@ -371,7 +371,7 @@ public class PetManagementPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         // 创建输入字段
-        JTextField nameField = new JTextField(currentName, 20);
+        JTextField breedField = new JTextField(currentBreed, 20); // 原来是nameField
         JComboBox<String> speciesCombo = new JComboBox<>(new String[]{"狗", "猫", "其他"});
         speciesCombo.setSelectedItem(currentSpecies);
         JTextField ageField = new JTextField(String.valueOf(currentAge), 20);
@@ -381,9 +381,9 @@ public class PetManagementPanel extends JPanel {
         
         // 添加标签和输入字段
         gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("名称:"), gbc);
+        panel.add(new JLabel("品种:"), gbc);
         gbc.gridx = 1;
-        panel.add(nameField, gbc);
+        panel.add(breedField, gbc);
         
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("种类:"), gbc);
@@ -412,13 +412,13 @@ public class PetManagementPanel extends JPanel {
         
         saveButton.addActionListener(e -> {
             try {
-                String name = nameField.getText().trim();
+                String breed = breedField.getText().trim(); // 原来是name
                 String species = (String) speciesCombo.getSelectedItem();
                 String ageStr = ageField.getText().trim();
                 String priceStr = priceField.getText().trim();
                 String status = (String) statusCombo.getSelectedItem();
                 
-                if (name.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty()) {
+                if (breed.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty()) {
                     JOptionPane.showMessageDialog(dialog, "请填写所有必填字段", "错误", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -426,7 +426,7 @@ public class PetManagementPanel extends JPanel {
                 int age = Integer.parseInt(ageStr);
                 double price = Double.parseDouble(priceStr);
                 
-                petService.updatePet(petId, name, species, age, price, status);
+                petService.updatePet(petId, breed, species, age, price, status); // 原来是name
                 loadPetData();
                 dialog.dispose();
                 JOptionPane.showMessageDialog(this, "修改成功", "提示", JOptionPane.INFORMATION_MESSAGE);

@@ -68,12 +68,17 @@ public class PetManagementView {
 
     public void showPetList(List<Pet> pets) {
         if (pets.isEmpty()) { System.out.println("没有宠物数据"); return; }
-        String[] headers = {"ID", "名称", "种类", "年龄", "价格", "状态"};
+        // 修改表头：名称改为品种
+        String[] headers = {"ID", "品种", "种类", "年龄", "价格", "状态"};
         String[][] data = new String[pets.size()][6];
         for (int i = 0; i < pets.size(); i++) {
             Pet pet = pets.get(i);
-            data[i][0] = pet.getId(); data[i][1] = pet.getName(); data[i][2] = pet.getSpecies();
-            data[i][3] = String.valueOf(pet.getAge()); data[i][4] = String.valueOf(pet.getPrice());
+            // 使用getBreed()代替getName()
+            data[i][0] = pet.getId();
+            data[i][1] = pet.getBreed();
+            data[i][2] = pet.getSpecies();
+            data[i][3] = String.valueOf(pet.getAge());
+            data[i][4] = String.valueOf(pet.getPrice());
             data[i][5] = pet.getStatus();
         }
         TableUtil.printTable(headers, data);
@@ -82,7 +87,8 @@ public class PetManagementView {
     public void showPetDetail(Pet pet) {
         System.out.println("\n---------- 宠物详情 ----------");
         System.out.println("ID：" + pet.getId());
-        System.out.println("名称：" + pet.getName());
+        // 使用getBreed()代替getName()
+        System.out.println("品种：" + pet.getBreed());
         System.out.println("种类：" + pet.getSpecies());
         System.out.println("年龄：" + pet.getAge());
         System.out.println("价格：" + pet.getPrice());

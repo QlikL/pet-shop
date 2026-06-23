@@ -6,8 +6,8 @@ public class Pet implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String id;
-    private String name;
-    private String species;
+    private String breed; // 品种（原来是name）
+    private String species; // 种类（狗、猫、其他）
     private int age;
     private double price;
     private String status;
@@ -15,9 +15,9 @@ public class Pet implements Serializable {
     public Pet() {
     }
 
-    public Pet(String id, String name, String species, int age, double price, String status) {
+    public Pet(String id, String breed, String species, int age, double price, String status) {
         this.id = id;
-        this.name = name;
+        this.breed = breed;
         this.species = species;
         this.age = age;
         this.price = price;
@@ -26,8 +26,8 @@ public class Pet implements Serializable {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getBreed() { return breed; }
+    public void setBreed(String breed) { this.breed = breed; }
     public String getSpecies() { return species; }
     public void setSpecies(String species) { this.species = species; }
     public int getAge() { return age; }
@@ -39,7 +39,7 @@ public class Pet implements Serializable {
 
     @Override
     public String toString() {
-        return "Pet{id='" + id + "', name='" + name + "', species='" + species +
+        return "Pet{id='" + id + "', breed='" + breed + "', species='" + species +
                "', age=" + age + ", price=" + price + ", status='" + status + "'}";
     }
 }

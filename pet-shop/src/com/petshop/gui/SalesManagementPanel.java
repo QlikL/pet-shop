@@ -53,22 +53,22 @@ public class SalesManagementPanel extends JPanel {
         titleLabel.setForeground(new Color(51, 51, 51));
         titlePanel.add(titleLabel, BorderLayout.CENTER);
         
-        // 创建右上角图标按钮面板
+        // 创建右上角按钮面板
         JPanel iconButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         iconButtonPanel.setOpaque(false);
         
-        // 添加销售记录按钮（+号）
-        JButton addButton = createIconButton("", "添加销售记录", new Color(76, 175, 80));
+        // 添加销售记录按钮
+        JButton addButton = createTextButton("添加", "添加销售记录", Color.WHITE);
         addButton.addActionListener(e -> addSalesRecord());
         iconButtonPanel.add(addButton);
         
-        // 查询销售记录按钮（放大镜）
-        JButton queryButton = createIconButton("🔍", "查询销售记录", new Color(33, 150, 243));
+        // 查询销售记录按钮
+        JButton queryButton = createTextButton("查询", "查询销售记录", Color.WHITE);
         queryButton.addActionListener(e -> querySalesRecord());
         iconButtonPanel.add(queryButton);
         
-        // 刷新列表按钮（刷新符号）
-        JButton refreshButton = createIconButton("🔄", "刷新列表", new Color(96, 125, 139));
+        // 刷新列表按钮
+        JButton refreshButton = createTextButton("刷新", "刷新列表", Color.WHITE);
         refreshButton.addActionListener(e -> loadSalesData());
         iconButtonPanel.add(refreshButton);
         
@@ -183,18 +183,18 @@ public class SalesManagementPanel extends JPanel {
     }
     
     /**
-     * 创建图标按钮
+     * 创建文字按钮
      */
-    private JButton createIconButton(String icon, String tooltip, Color bgColor) {
-        JButton button = new JButton(icon);
-        button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+    private JButton createTextButton(String text, String tooltip, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("微软雅黑", Font.PLAIN, 14));
         button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
+        button.setForeground(Color.BLACK);
         button.setToolTipText(tooltip);
         button.setFocusPainted(false);
-        button.setBorderPainted(false);
+        button.setBorderPainted(true);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(40, 40));
+        button.setPreferredSize(new Dimension(70, 35));
         return button;
     }
     

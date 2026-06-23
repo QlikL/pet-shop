@@ -43,7 +43,8 @@ public class PetController {
             String[] info = view.getAddPetInfo();
             Pet pet = petService.addPet(info[0], info[1], info[2], Integer.parseInt(info[3]),
                     Double.parseDouble(info[4]), info[5]);
-            view.showMessage("添加成功：" + pet.getName());
+            // 使用getBreed()代替getName()
+            view.showMessage("添加成功：" + pet.getBreed());
         } catch (BusinessException e) { view.showMessage("添加失败：" + e.getMessage());
         } catch (NumberFormatException e) { view.showMessage("输入格式错误"); }
     }
@@ -52,7 +53,8 @@ public class PetController {
         try {
             String id = view.getPetId();
             Pet pet = petService.getPet(id);
-            if (view.confirmDelete(pet.getName())) {
+            // 使用getBreed()代替getName()
+            if (view.confirmDelete(pet.getBreed())) {
                 petService.deletePet(id);
                 view.showMessage("删除成功");
             } else { view.showMessage("已取消删除"); }

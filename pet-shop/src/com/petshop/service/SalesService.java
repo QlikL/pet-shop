@@ -29,12 +29,18 @@ public class SalesService {
     public SalesRecord addSale(String petId, int quantity) throws BusinessException {
         Pet pet = petDao.findById(petId);
         if (pet == null) throw new BusinessException("宠物不存在");
-        Inventory inventory = inventoryDao.findByPetId(petId);
+        
+        // 根据宠物的品种查找库存
+        Inventory inventory = inventoryDao.findBySpeciesAndBreed(pet.getSpecies(), pet.getBreed());
         if (inventory == null || inventory.getQuantity() < quantity) throw new BusinessException("库存不足");
+        
+        // 减少库存数量
         inventory.reduceQuantity(quantity);
         inventoryDao.save(inventory);
+        
         String recordId = UUID.randomUUID().toString().substring(0, 8);
-        SalesRecord record = new SalesRecord(recordId, petId, pet.getName(), quantity, pet.getPrice());
+        // 使用pet.getBreed()代替pet.getName()
+        SalesRecord record = new SalesRecord(recordId, petId, pet.getBreed(), quantity, pet.getPrice());
         salesRecordDao.add(record);
         return record;
     }

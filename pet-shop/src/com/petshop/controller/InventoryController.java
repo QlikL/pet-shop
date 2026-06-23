@@ -26,10 +26,10 @@ public class InventoryController {
             int choice = view.showMenu();
             switch (choice) {
                 case 1: queryInventory(); break;
-                case 2: updateInventory(); break;
-                case 3: setWarning(); break;
-                case 4: checkWarning(); break;
-                case 5: showStatistics(); break;
+                // case 2: updateInventory(); break; // 已移除，库存数量自动统计
+                case 2: setWarning(); break; // 原来是case 3
+                case 3: checkWarning(); break; // 原来是case 4
+                case 4: showStatistics(); break; // 原来是case 5
                 case 0: running = false; break;
                 default: view.showMessage("无效的选择，请重新输入");
             }
@@ -38,6 +38,8 @@ public class InventoryController {
 
     private void queryInventory() { view.showInventoryList(inventoryService.getAllInventory()); }
 
+    // updateInventory方法已移除，因为库存数量是自动统计的，不可手动修改
+    /*
     private void updateInventory() {
         try {
             String petId = view.getPetId();
@@ -47,10 +49,13 @@ public class InventoryController {
             view.showMessage("库存更新成功");
         } catch (BusinessException e) { view.showMessage("更新失败：" + e.getMessage()); }
     }
+    */
 
     private void setWarning() {
         try {
-            inventoryService.setWarningThreshold(view.getPetId(), view.getWarningThreshold());
+            // 注意：这里需要修改view以支持按品种设置预警
+            // 暂时保留旧接口，但实际应该改为按species和breed设置
+            inventoryService.setWarningThreshold(view.getPetId(), "", view.getWarningThreshold());
             view.showMessage("预警阈值设置成功");
         } catch (BusinessException e) { view.showMessage("设置失败：" + e.getMessage()); }
     }

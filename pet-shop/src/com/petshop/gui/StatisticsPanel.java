@@ -114,17 +114,15 @@ public class StatisticsPanel extends JPanel {
         speciesCount.put("其他", 0);
         
         for (Inventory inv : inventories) {
-            Pet pet = petDao.findById(inv.getPetId());
-            if (pet != null) {
-                String species = pet.getSpecies();
-                // 将品种归类为3种类型
-                if ("狗".equals(species)) {
-                    speciesCount.put("狗", speciesCount.get("狗") + inv.getQuantity());
-                } else if ("猫".equals(species)) {
-                    speciesCount.put("猫", speciesCount.get("猫") + inv.getQuantity());
-                } else {
-                    speciesCount.put("其他", speciesCount.get("其他") + inv.getQuantity());
-                }
+            // 直接使用Inventory中的species字段
+            String species = inv.getSpecies();
+            // 将品种归类为3种类型
+            if ("狗".equals(species)) {
+                speciesCount.put("狗", speciesCount.get("狗") + inv.getQuantity());
+            } else if ("猫".equals(species)) {
+                speciesCount.put("猫", speciesCount.get("猫") + inv.getQuantity());
+            } else {
+                speciesCount.put("其他", speciesCount.get("其他") + inv.getQuantity());
             }
         }
         

@@ -72,7 +72,7 @@ public class LoginDialog extends JDialog {
         
         usernameField = new JTextField(15);
         usernameField.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        usernameField.setText(DEFAULT_USERNAME);
+        // 不设置默认用户名，保持为空
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.weightx = 0.7;
@@ -88,7 +88,7 @@ public class LoginDialog extends JDialog {
         
         passwordField = new JPasswordField(15);
         passwordField.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        passwordField.setText(DEFAULT_PASSWORD);
+        // 不设置默认密码，保持为空
         gbc.gridx = 1;
         gbc.gridy = 1;
         gbc.weightx = 0.7;

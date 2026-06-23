@@ -44,13 +44,17 @@ public class InventoryManagementView {
 
     public void showInventoryList(List<Inventory> inventories) {
         if (inventories.isEmpty()) { System.out.println("没有库存数据"); return; }
-        String[] headers = {"宠物ID", "库存数量", "预警阈值", "状态"};
-        String[][] data = new String[inventories.size()][4];
+        // 修改表头：移除宠物ID，改为种类和品种
+        String[] headers = {"种类", "品种", "库存数量", "预警阈值", "状态"};
+        String[][] data = new String[inventories.size()][5];
         for (int i = 0; i < inventories.size(); i++) {
             Inventory inv = inventories.get(i);
-            data[i][0] = inv.getPetId(); data[i][1] = String.valueOf(inv.getQuantity());
-            data[i][2] = String.valueOf(inv.getWarningThreshold());
-            data[i][3] = inv.needWarning() ? "预警" : "正常";
+            // 使用getSpecies()和getBreed()代替getPetId()
+            data[i][0] = inv.getSpecies();
+            data[i][1] = inv.getBreed();
+            data[i][2] = String.valueOf(inv.getQuantity());
+            data[i][3] = String.valueOf(inv.getWarningThreshold());
+            data[i][4] = inv.needWarning() ? "预警" : "正常";
         }
         TableUtil.printTable(headers, data);
     }

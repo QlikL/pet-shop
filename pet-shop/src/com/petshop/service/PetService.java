@@ -21,16 +21,16 @@ public class PetService {
         this.inventoryDao = inventoryDao;
     }
 
-    public Pet addPet(String id, String name, String species, int age, double price, String status)
+    public Pet addPet(String id, String breed, String species, int age, double price, String status)
             throws BusinessException {
         if (id == null || id.trim().isEmpty()) throw new BusinessException("宠物ID不能为空");
-        if (name == null || name.trim().isEmpty()) throw new BusinessException("宠物名称不能为空");
+        if (breed == null || breed.trim().isEmpty()) throw new BusinessException("宠物品种不能为空");
         if (age < 0) throw new BusinessException("年龄不能为负数");
         if (price < 0) throw new BusinessException("价格不能为负数");
 
-        Pet pet = new Pet(id, name, species, age, price, status);
+        Pet pet = new Pet(id, breed, species, age, price, status);
         if (!petDao.add(pet)) throw new BusinessException("宠物ID已存在");
-        inventoryDao.save(new Inventory(id, 0, 5));
+        // 不再在添加宠物时创建库存记录，库存由InventoryService自动统计
         return pet;
     }
 
@@ -39,11 +39,11 @@ public class PetService {
         petDao.delete(id);
     }
 
-    public Pet updatePet(String id, String name, String species, int age, double price, String status)
+    public Pet updatePet(String id, String breed, String species, int age, double price, String status)
             throws BusinessException {
         Pet pet = petDao.findById(id);
         if (pet == null) throw new BusinessException("宠物不存在");
-        if (name != null && !name.trim().isEmpty()) pet.setName(name);
+        if (breed != null && !breed.trim().isEmpty()) pet.setBreed(breed);
         if (species != null && !species.trim().isEmpty()) pet.setSpecies(species);
         if (age >= 0) pet.setAge(age);
         if (price >= 0) pet.setPrice(price);
