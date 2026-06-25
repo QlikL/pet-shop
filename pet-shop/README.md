@@ -1,6 +1,6 @@
 # 宠物商店管理系统
 
-一个基于Java的宠物商店管理系统，采用MVC架构设计，支持控制台和GUI两种界面。
+一个基于Java的宠物商店管理系统，采用MVC架构设计，提供Swing图形用户界面。
 
 ## 功能特性
 
@@ -57,7 +57,6 @@ pet-shop/
 │           ├── model/         # 数据模型
 │           ├── service/       # 业务逻辑层
 │           ├── util/          # 工具类
-│           ├── view/          # 控制台视图
 │           └── Main.java      # 程序入口
 ├── data/                      # 数据文件目录
 │   ├── pets.dat              # 宠物数据
@@ -75,22 +74,15 @@ pet-shop/
 
 ## 运行要求
 
-- Java 8 或更高版本
+- Java JDK 26
 - JFreeChart 库（用于数据统计图表）
 - iText 库（用于PDF导出）
 
 ## 使用说明
 
-### 控制台模式
-
-运行 `Main.java` 启动控制台版本：
-
-```bash
-javac -cp .:lib/* src/com/petshop/Main.java
-java -cp .:lib/* com.petshop.Main
-```
-
-### GUI模式
+1. 运行 `Main.java` 启动系统
+2. 系统显示登录对话框，输入用户名和密码（默认：admin/123456）
+3. 登录成功后进入主界面
 
 系统提供基于Swing的图形界面，包含以下功能模块：
 - 登录对话框
@@ -124,10 +116,10 @@ java -cp .:lib/* com.petshop.Main
 
 ### 添加新的功能模块
 
-1. 在 `view` 或 `gui` 包中创建视图类
+1. 在 `gui` 包中创建视图面板类
 2. 在 `controller` 包中创建控制器类
 3. 在 `service` 包中创建业务逻辑类
-4. 在 `MainController` 或 `MainFrame` 中注册新模块
+4. 在 `MainFrame` 中注册新模块
 
 ## 许可证
 

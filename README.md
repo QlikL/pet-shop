@@ -2,7 +2,7 @@
 
 ## 项目简介
 
-本项目是一个基于Java的宠物商店管理系统，采用MVC架构设计，实现了宠物信息管理、库存管理、销售管理和数据统计等功能。系统同时支持控制台界面和Swing图形用户界面。
+本项目是一个基于Java的宠物商店管理系统，采用MVC架构设计，实现了宠物信息管理、库存管理、销售管理和数据统计等功能。系统采用Swing图形用户界面，提供现代化的用户体验。
 
 ## 技术栈
 
@@ -48,7 +48,7 @@
 1. 选择 `File` -> `Project Structure` -> `Modules`
 2. 选择项目模块，点击 `Dependencies` 标签
 3. 点击 `+` -> `JARs or directories`
-4. 添加以下库文件（如果有的话）：
+4. 添加以下库文件：
    - `jfreechart-1.5.jar`
    - `jcommon-1.0.jar`
    - `itext-2.1.7.jar`
@@ -57,35 +57,13 @@
 
 1. 在 `Project Structure` -> `Modules` -> `Sources`
 2. 确认 `src` 目录被标记为 `Sources`（蓝色文件夹）
-3. 确认 `data` 目录存在（用于存储数据文件）
 
 ### 3. 运行项目
-
-#### 3.1 控制台版本
 
 1. 在项目中找到 `src/com/petshop/Main.java`
 2. 右键点击 `Main.java`
 3. 选择 `Run 'Main.main()'`
-
-#### 3.2 GUI版本
-
-1. 在项目中找到 `src/com/petshop/gui/MainFrame.java`
-2. 右键点击 `MainFrame.java`
-3. 选择 `Run 'MainFrame.main()'`
-
-或者修改 `Main.java` 中的启动方式：
-
-```java
-public static void main(String[] args) {
-    // 启动GUI版本
-    SwingUtilities.invokeLater(() -> {
-        new MainFrame().setVisible(true);
-    });
-    
-    // 或启动控制台版本
-    // new MainController().run();
-}
-```
+4. 系统将显示登录对话框，输入用户名和密码后进入主界面
 
 ## 项目结构
 
@@ -129,12 +107,6 @@ pet-shop/
 │           │   ├── TableUtil.java
 │           │   ├── DialogUtil.java
 │           │   └── Theme.java
-│           ├── view/            # 控制台视图
-│           │   ├── MainMenuView.java
-│           │   ├── PetManagementView.java
-│           │   ├── InventoryManagementView.java
-│           │   ├── SalesManagementView.java
-│           │   └── StatisticsView.java
 │           └── Main.java        # 程序入口
 ├── data/                        # 数据文件目录
 │   ├── pets.dat
@@ -153,21 +125,10 @@ pet-shop/
 
 ## 功能说明
 
-### 控制台界面
-
 | 功能 | 说明 |
 |-----|------|
-| 宠物管理 | 添加、删除、修改、查询宠物信息 |
-| 库存管理 | 查询库存、更新库存、设置预警 |
-| 销售管理 | 添加销售记录、查询销售记录 |
-| 数据统计 | 库存统计、销售统计 |
-
-### GUI图形界面
-
-| 功能 | 说明 |
-|-----|------|
-| 登录系统 | 管理员登录验证 |
-| 宠物管理 | 表格展示、增删改查 |
+| 登录系统 | 管理员登录验证（用户名：admin，密码：123456） |
+| 宠物管理 | 表格展示宠物信息，支持增删改查 |
 | 库存管理 | 库存查询、预警提醒 |
 | 销售管理 | 销售记录管理 |
 | 数据统计 | JFreeChart图表展示、导出PNG/PDF |
