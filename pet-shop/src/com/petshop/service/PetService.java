@@ -33,14 +33,26 @@ public class PetService {
         this.salesRecordDao = salesRecordDao;
     }
 
-    public Pet addPet(String id, String breed, String species, double age, double price, String status)
+    /**
+     * 添加宠物
+     * @param id 宠物ID
+     * @param breed 品种
+     * @param species 种类
+     * @param birthYear 出生年份
+     * @param birthMonth 出生月份
+     * @param price 价格
+     * @param status 状态
+     * @return 添加的宠物对象
+     */
+    public Pet addPet(String id, String breed, String species, int birthYear, int birthMonth, double price, String status)
             throws BusinessException {
         if (id == null || id.trim().isEmpty()) throw new BusinessException("宠物ID不能为空");
         if (breed == null || breed.trim().isEmpty()) throw new BusinessException("宠物品种不能为空");
-        if (age < 0) throw new BusinessException("年龄不能为负数");
+        if (birthYear < 1900 || birthYear > 2100) throw new BusinessException("出生年份无效");
+        if (birthMonth < 1 || birthMonth > 12) throw new BusinessException("出生月份无效");
         if (price < 0) throw new BusinessException("价格不能为负数");
 
-        Pet pet = new Pet(id, breed, species, age, price, status);
+        Pet pet = new Pet(id, breed, species, birthYear, birthMonth, price, status);
         if (!petDao.add(pet)) throw new BusinessException("宠物ID已存在");
         // 不再在添加宠物时创建库存记录，库存由InventoryService自动统计
         return pet;
@@ -51,7 +63,18 @@ public class PetService {
         petDao.delete(id);
     }
 
-    public Pet updatePet(String id, String breed, String species, double age, double price, String status)
+    /**
+     * 更新宠物信息
+     * @param id 宠物ID
+     * @param breed 品种
+     * @param species 种类
+     * @param birthYear 出生年份
+     * @param birthMonth 出生月份
+     * @param price 价格
+     * @param status 状态
+     * @return 更新后的宠物对象
+     */
+    public Pet updatePet(String id, String breed, String species, int birthYear, int birthMonth, double price, String status)
             throws BusinessException {
         Pet pet = petDao.findById(id);
         if (pet == null) throw new BusinessException("宠物不存在");
@@ -61,9 +84,12 @@ public class PetService {
         
         if (breed != null && !breed.trim().isEmpty()) pet.setBreed(breed);
         if (species != null && !species.trim().isEmpty()) pet.setSpecies(species);
-        if (age >= 0) pet.setAge(age);
+        if (birthYear >= 1900 && birthYear <= 2100) pet.setBirthYear(birthYear);
+        if (birthMonth >= 1 && birthMonth <= 12) pet.setBirthMonth(birthMonth);
         if (price >= 0) pet.setPrice(price);
         if (status != null && !status.trim().isEmpty()) pet.setStatus(status);
+        // 重新计算年龄
+        pet.updateAge();
         petDao.update(pet);
         
         // 处理状态变更时的销售记录
@@ -125,4 +151,16 @@ public class PetService {
     public List<Pet> getAllPets() { return petDao.findAll(); }
     public List<Pet> getPetsBySpecies(String species) { return petDao.findBySpecies(species); }
     public List<Pet> getPetsByStatus(String status) { return petDao.findByStatus(status); }
+    
+    /**
+     * 更新所有宠物的年龄（登录时调用）
+     */
+    public void updateAllPetsAge() {
+        List<Pet> allPets = petDao.findAll();
+        for (Pet pet : allPets) {
+            pet.updateAge();
+        }
+        // 保存更新后的数据
+        petDao.saveAll(allPets);
+    }
 }

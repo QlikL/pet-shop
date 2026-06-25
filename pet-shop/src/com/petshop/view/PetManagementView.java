@@ -30,13 +30,14 @@ public class PetManagementView {
     }
 
     public String[] getAddPetInfo() {
-        String[] info = new String[6];
+        String[] info = new String[7];
         System.out.print("请输入宠物ID："); info[0] = scanner.nextLine();
-        System.out.print("请输入宠物名称："); info[1] = scanner.nextLine();
-        System.out.print("请输入种类（狗/猫）："); info[2] = scanner.nextLine();
-        System.out.print("请输入年龄："); info[3] = scanner.nextLine();
-        System.out.print("请输入价格："); info[4] = scanner.nextLine();
-        System.out.print("请输入状态（在售/已售/缺货）："); info[5] = scanner.nextLine();
+        System.out.print("请输入宠物品种："); info[1] = scanner.nextLine();
+        System.out.print("请输入种类（狗/猫/其他）："); info[2] = scanner.nextLine();
+        System.out.print("请输入出生年份："); info[3] = scanner.nextLine();
+        System.out.print("请输入出生月份（1-12）："); info[4] = scanner.nextLine();
+        System.out.print("请输入价格："); info[5] = scanner.nextLine();
+        System.out.print("请输入状态（可售/已售/预留）："); info[6] = scanner.nextLine();
         return info;
     }
 
@@ -46,12 +47,13 @@ public class PetManagementView {
     }
 
     public String[] getUpdatePetInfo() {
-        String[] info = new String[5];
-        System.out.print("请输入新名称（直接回车不修改）："); info[0] = scanner.nextLine();
+        String[] info = new String[6];
+        System.out.print("请输入新品种（直接回车不修改）："); info[0] = scanner.nextLine();
         System.out.print("请输入新种类（直接回车不修改）："); info[1] = scanner.nextLine();
-        System.out.print("请输入新年龄（直接回车不修改）："); info[2] = scanner.nextLine();
-        System.out.print("请输入新价格（直接回车不修改）："); info[3] = scanner.nextLine();
-        System.out.print("请输入新状态（直接回车不修改）："); info[4] = scanner.nextLine();
+        System.out.print("请输入新出生年份（直接回车不修改）："); info[2] = scanner.nextLine();
+        System.out.print("请输入新出生月份（直接回车不修改）："); info[3] = scanner.nextLine();
+        System.out.print("请输入新价格（直接回车不修改）："); info[4] = scanner.nextLine();
+        System.out.print("请输入新状态（直接回车不修改）："); info[5] = scanner.nextLine();
         return info;
     }
 

@@ -85,4 +85,13 @@ public class PetDao {
         }
         return result;
     }
+    
+    /**
+     * 保存所有宠物数据（用于批量更新）
+     * @param pets 宠物列表
+     */
+    public void saveAll(List<Pet> pets) {
+        this.pets = new ArrayList<>(pets);
+        savePets();
+    }
 }

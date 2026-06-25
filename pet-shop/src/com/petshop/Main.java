@@ -2,6 +2,7 @@ package com.petshop;
 
 import com.petshop.gui.LoginDialog;
 import com.petshop.gui.MainFrame;
+import com.petshop.service.PetService;
 import javax.swing.*;
 
 public class Main {
@@ -23,7 +24,15 @@ public class Main {
             boolean loginSuccess = loginDialog.showLogin();
             
             if (loginSuccess) {
-                // 登录成功，显示主窗口
+                // 登录成功，更新所有宠物的年龄
+                try {
+                    PetService petService = new PetService();
+                    petService.updateAllPetsAge();
+                } catch (Exception e) {
+                    System.out.println("更新宠物年龄失败：" + e.getMessage());
+                }
+                
+                // 显示主窗口
                 frame.setVisible(true);
                 // 更新用户信息
                 java.lang.reflect.Field userLabelField;

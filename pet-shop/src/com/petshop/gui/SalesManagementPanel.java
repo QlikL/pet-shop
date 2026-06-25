@@ -57,11 +57,6 @@ public class SalesManagementPanel extends JPanel {
         JPanel iconButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         iconButtonPanel.setOpaque(false);
         
-        // 添加销售记录按钮
-        JButton addButton = Theme.createPrimaryButton("添加记录");
-        addButton.addActionListener(e -> addSalesRecord());
-        iconButtonPanel.add(addButton);
-        
         // 查询销售记录按钮
         JButton queryButton = Theme.createSecondaryButton("查询");
         queryButton.addActionListener(e -> querySalesRecord());

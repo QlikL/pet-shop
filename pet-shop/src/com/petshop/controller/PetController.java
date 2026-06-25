@@ -41,8 +41,8 @@ public class PetController {
     private void addPet() {
         try {
             String[] info = view.getAddPetInfo();
-            Pet pet = petService.addPet(info[0], info[1], info[2], Double.parseDouble(info[3]),
-                    Double.parseDouble(info[4]), info[5]);
+            Pet pet = petService.addPet(info[0], info[1], info[2], Integer.parseInt(info[3]),
+                    Integer.parseInt(info[4]), Double.parseDouble(info[5]), info[6]);
             // 使用getBreed()代替getName()
             view.showMessage("添加成功：" + pet.getBreed());
         } catch (BusinessException e) { view.showMessage("添加失败：" + e.getMessage());
@@ -66,9 +66,10 @@ public class PetController {
             String id = view.getPetId();
             petService.getPet(id);
             String[] info = view.getUpdatePetInfo();
-            double age = info[2].isEmpty() ? -1 : Double.parseDouble(info[2]);
-            double price = info[3].isEmpty() ? -1 : Double.parseDouble(info[3]);
-            petService.updatePet(id, info[0], info[1], age, price, info[4]);
+            int birthYear = info[2].isEmpty() ? -1 : Integer.parseInt(info[2]);
+            int birthMonth = info[3].isEmpty() ? -1 : Integer.parseInt(info[3]);
+            double price = info[4].isEmpty() ? -1 : Double.parseDouble(info[4]);
+            petService.updatePet(id, info[0], info[1], birthYear, birthMonth, price, info[5]);
             view.showMessage("修改成功");
         } catch (BusinessException e) { view.showMessage("修改失败：" + e.getMessage());
         } catch (NumberFormatException e) { view.showMessage("输入格式错误"); }

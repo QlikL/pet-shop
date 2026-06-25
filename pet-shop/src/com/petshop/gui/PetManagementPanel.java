@@ -95,7 +95,7 @@ public class PetManagementPanel extends JPanel {
         sorter.setComparator(0, String.CASE_INSENSITIVE_ORDER); // 宠物ID - 字符串排序
         sorter.setComparator(1, String.CASE_INSENSITIVE_ORDER); // 品种 - 字符串排序
         sorter.setComparator(2, String.CASE_INSENSITIVE_ORDER); // 种类 - 字符串排序
-        sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Integer.compare((Integer)o1, (Integer)o2)); // 年龄 - 整数排序
+        sorter.setComparator(3, (Comparator<Object>) (o1, o2) -> Double.compare(Double.parseDouble(o1.toString()), Double.parseDouble(o2.toString()))); // 年龄 - 双精度排序
         sorter.setComparator(4, (Comparator<Object>) (o1, o2) -> Double.compare((Double)o1, (Double)o2)); // 价格 - 双精度排序
         sorter.setComparator(5, String.CASE_INSENSITIVE_ORDER); // 状态 - 字符串排序
         
@@ -190,7 +190,7 @@ public class PetManagementPanel extends JPanel {
                 pet.getId(),
                 pet.getBreed(),
                 pet.getSpecies(),
-                pet.getAge(),
+                String.format("%.2f", pet.getAge()),
                 pet.getPrice(),
                 pet.getStatus()
             };
@@ -201,7 +201,7 @@ public class PetManagementPanel extends JPanel {
     private void addPet() {
         // 创建添加宠物对话框
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "添加宠物", true);
-        dialog.setSize(440, 400);
+        dialog.setSize(440, 480);
         dialog.setLocationRelativeTo(this);
         
         JPanel panel = new JPanel(new GridBagLayout());
@@ -215,7 +215,8 @@ public class PetManagementPanel extends JPanel {
         JTextField idField = Theme.createTextField(20);
         JTextField breedField = Theme.createTextField(20);
         JComboBox<String> speciesCombo = Theme.createComboBox(new String[]{"狗", "猫", "其他"});
-        JTextField ageField = Theme.createTextField(20);
+        JTextField birthYearField = Theme.createTextField(20);
+        JTextField birthMonthField = Theme.createTextField(20);
         JTextField priceField = Theme.createTextField(20);
         JComboBox<String> statusCombo = Theme.createComboBox(new String[]{"可售", "已售", "预留"});
         
@@ -236,16 +237,21 @@ public class PetManagementPanel extends JPanel {
         panel.add(speciesCombo, gbc);
         
         gbc.gridx = 0; gbc.gridy = 3;
-        panel.add(Theme.createBodyLabel("年龄:"), gbc);
+        panel.add(Theme.createBodyLabel("出生年份:"), gbc);
         gbc.gridx = 1;
-        panel.add(ageField, gbc);
+        panel.add(birthYearField, gbc);
         
         gbc.gridx = 0; gbc.gridy = 4;
+        panel.add(Theme.createBodyLabel("出生月份:"), gbc);
+        gbc.gridx = 1;
+        panel.add(birthMonthField, gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 5;
         panel.add(Theme.createBodyLabel("价格:"), gbc);
         gbc.gridx = 1;
         panel.add(priceField, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 5;
+        gbc.gridx = 0; gbc.gridy = 6;
         panel.add(Theme.createBodyLabel("状态:"), gbc);
         gbc.gridx = 1;
         panel.add(statusCombo, gbc);
@@ -261,24 +267,26 @@ public class PetManagementPanel extends JPanel {
                 String id = idField.getText().trim();
                 String breed = breedField.getText().trim();
                 String species = (String) speciesCombo.getSelectedItem();
-                String ageStr = ageField.getText().trim();
+                String birthYearStr = birthYearField.getText().trim();
+                String birthMonthStr = birthMonthField.getText().trim();
                 String priceStr = priceField.getText().trim();
                 String status = (String) statusCombo.getSelectedItem();
                 
-                if (id.isEmpty() || breed.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty()) {
+                if (id.isEmpty() || breed.isEmpty() || birthYearStr.isEmpty() || birthMonthStr.isEmpty() || priceStr.isEmpty()) {
                     com.petshop.util.DialogUtil.showError(dialog, "请填写所有必填字段");
                     return;
                 }
                 
-                double age = Double.parseDouble(ageStr);
+                int birthYear = Integer.parseInt(birthYearStr);
+                int birthMonth = Integer.parseInt(birthMonthStr);
                 double price = Double.parseDouble(priceStr);
                 
-                petService.addPet(id, breed, species, age, price, status);
+                petService.addPet(id, breed, species, birthYear, birthMonth, price, status);
                 loadPetData();
                 dialog.dispose();
                 com.petshop.util.DialogUtil.showSuccess(this, "添加成功");
             } catch (NumberFormatException ex) {
-                com.petshop.util.DialogUtil.showError(dialog, "年龄和价格必须是数字");
+                com.petshop.util.DialogUtil.showError(dialog, "出生年月和价格必须是数字");
             } catch (Exception ex) {
                 com.petshop.util.DialogUtil.showError(dialog, "添加失败：" + ex.getMessage());
             }
@@ -289,7 +297,7 @@ public class PetManagementPanel extends JPanel {
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
         
-        gbc.gridx = 0; gbc.gridy = 6;
+        gbc.gridx = 0; gbc.gridy = 7;
         gbc.gridwidth = 2;
         panel.add(buttonPanel, gbc);
         
@@ -335,15 +343,20 @@ public class PetManagementPanel extends JPanel {
         }
         
         String petId = (String) tableModel.getValueAt(selectedRow, 0);
-        String currentBreed = (String) tableModel.getValueAt(selectedRow, 1); // 原来是currentName
+        String currentBreed = (String) tableModel.getValueAt(selectedRow, 1);
         String currentSpecies = (String) tableModel.getValueAt(selectedRow, 2);
         double currentAge = (double) tableModel.getValueAt(selectedRow, 3);
         double currentPrice = (double) tableModel.getValueAt(selectedRow, 4);
         String currentStatus = (String) tableModel.getValueAt(selectedRow, 5);
         
+        // 获取当前宠物的出生年月
+        Pet currentPet = allPets.get(selectedRow);
+        int currentBirthYear = currentPet.getBirthYear();
+        int currentBirthMonth = currentPet.getBirthMonth();
+        
         // 创建修改宠物对话框
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "修改宠物", true);
-        dialog.setSize(440, 400);
+        dialog.setSize(440, 460);
         dialog.setLocationRelativeTo(this);
         
         JPanel panel = Theme.createDialogPanel();
@@ -356,8 +369,10 @@ public class PetManagementPanel extends JPanel {
         breedField.setText(currentBreed);
         JComboBox<String> speciesCombo = Theme.createComboBox(new String[]{"狗", "猫", "其他"});
         speciesCombo.setSelectedItem(currentSpecies);
-        JTextField ageField = Theme.createTextField(20);
-        ageField.setText(String.valueOf(currentAge));
+        JTextField birthYearField = Theme.createTextField(20);
+        birthYearField.setText(String.valueOf(currentBirthYear));
+        JTextField birthMonthField = Theme.createTextField(20);
+        birthMonthField.setText(String.valueOf(currentBirthMonth));
         JTextField priceField = Theme.createTextField(20);
         priceField.setText(String.valueOf(currentPrice));
         JComboBox<String> statusCombo = Theme.createComboBox(new String[]{"可售", "已售", "预留"});
@@ -375,16 +390,21 @@ public class PetManagementPanel extends JPanel {
         panel.add(speciesCombo, gbc);
         
         gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(Theme.createBodyLabel("年龄:"), gbc);
+        panel.add(Theme.createBodyLabel("出生年份:"), gbc);
         gbc.gridx = 1;
-        panel.add(ageField, gbc);
+        panel.add(birthYearField, gbc);
         
         gbc.gridx = 0; gbc.gridy = 3;
+        panel.add(Theme.createBodyLabel("出生月份:"), gbc);
+        gbc.gridx = 1;
+        panel.add(birthMonthField, gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 4;
         panel.add(Theme.createBodyLabel("价格:"), gbc);
         gbc.gridx = 1;
         panel.add(priceField, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 5;
         panel.add(Theme.createBodyLabel("状态:"), gbc);
         gbc.gridx = 1;
         panel.add(statusCombo, gbc);
@@ -397,26 +417,28 @@ public class PetManagementPanel extends JPanel {
         
         saveButton.addActionListener(e -> {
             try {
-                String breed = breedField.getText().trim(); // 原来是name
+                String breed = breedField.getText().trim();
                 String species = (String) speciesCombo.getSelectedItem();
-                String ageStr = ageField.getText().trim();
+                String birthYearStr = birthYearField.getText().trim();
+                String birthMonthStr = birthMonthField.getText().trim();
                 String priceStr = priceField.getText().trim();
                 String status = (String) statusCombo.getSelectedItem();
                 
-                if (breed.isEmpty() || ageStr.isEmpty() || priceStr.isEmpty()) {
+                if (breed.isEmpty() || birthYearStr.isEmpty() || birthMonthStr.isEmpty() || priceStr.isEmpty()) {
                     com.petshop.util.DialogUtil.showError(dialog, "请填写所有必填字段");
                     return;
                 }
                 
-                double age = Double.parseDouble(ageStr);
+                int birthYear = Integer.parseInt(birthYearStr);
+                int birthMonth = Integer.parseInt(birthMonthStr);
                 double price = Double.parseDouble(priceStr);
                 
-                petService.updatePet(petId, breed, species, age, price, status);
+                petService.updatePet(petId, breed, species, birthYear, birthMonth, price, status);
                 loadPetData();
                 dialog.dispose();
                 com.petshop.util.DialogUtil.showSuccess(this, "修改成功");
             } catch (NumberFormatException ex) {
-                com.petshop.util.DialogUtil.showError(dialog, "年龄和价格必须是数字");
+                com.petshop.util.DialogUtil.showError(dialog, "出生年月和价格必须是数字");
             } catch (Exception ex) {
                 com.petshop.util.DialogUtil.showError(dialog, "修改失败：" + ex.getMessage());
             }
@@ -427,7 +449,7 @@ public class PetManagementPanel extends JPanel {
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
         
-        gbc.gridx = 0; gbc.gridy = 5;
+        gbc.gridx = 0; gbc.gridy = 6;
         gbc.gridwidth = 2;
         panel.add(buttonPanel, gbc);
         
